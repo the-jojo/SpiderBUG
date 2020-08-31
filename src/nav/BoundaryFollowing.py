@@ -13,9 +13,14 @@ from src.utils.sbMath import get_point_towards, calc_angle, rotate, angle_betwee
 logger = None
 config_ = Config()
 
-# should be ok
+
 class BfWaypoint:
-    def __init__(self, pos: Node, obst_to_follow: ObstacleSegment, orig_pos=None): # TODO large discrepency btw original pos and updated pos
+    """
+    Boundary-Following-Waypoint
+    updated each turn to lie just ahead of the obstacle on the obstacle boundary. Its change over time is monitored
+    to adjust safe-to-leave condition
+    """
+    def __init__(self, pos: Node, obst_to_follow: ObstacleSegment, orig_pos=None):
         self.orig_pos = pos
         self.cur_pos = orig_pos if orig_pos is not None else pos
 
@@ -61,14 +66,20 @@ obst_id_to_follow: float = math.nan
 obst_dir: Dir or None = None
 
 
-def find_obst(id, all_obst):
+def find_obst(_id, all_obst):
+    """
+    Finds the obstacle with given id from list of all obstacles or None if obstacle doesnt exist
+    :param _id: id of obstacle to find
+    :param all_obst: list of all obstacles
+    :return: obstacleSegment or None
+    """
     # find updated obstacle with obst_id_to_follow
-    foo = np.vectorize(lambda t: t.id == id)
+    foo = np.vectorize(lambda t: t.id == _id)
 
     # check if we lost the obstacle
-    if len([o for o in all_obst if o.id == id]) == 0 or foo(all_obst).size == 0:
+    if len([o for o in all_obst if o.id == _id]) == 0 or foo(all_obst).size == 0:
         return None
-    return [o for o in all_obst if o.id == id][0]
+    return [o for o in all_obst if o.id == _id][0]
 
 
 # works
@@ -97,14 +108,12 @@ def get_dir_of_obst(cur_pos: Node, cur_heading: float, obst_to_follow: ObstacleS
         return Dir.RIGHT
 
 
-# works
 def get_dir_of_obst_fut(obst_to_follow: ObstacleSegment, cur_pos: Node, next_pos: Node) -> Dir:
     """Finds the direction of an obstacle in the future"""
     h = angle_between(np.array([1, 0]), (next_pos - cur_pos).as_ndarray_2d())
     return get_dir_of_obst(next_pos, h, obst_to_follow)
 
 
-# works
 def init(obstacles: [ObstacleSegment], cur_pos: Node, cur_heading: float, goal_pos: Node,
          logger_, config) -> bool:
     """Initializes BF if needed - finds obstacle id to follow and selects bfWaypoint if none"""
@@ -121,12 +130,12 @@ def init(obstacles: [ObstacleSegment], cur_pos: Node, cur_heading: float, goal_p
             path_to_check = [cur_pos, goal_pos]
         else:
             path_to_check = find_path_complete(cur_pos, cur_heading, [goal_pos], config_.TURN_RADIUS,
-                                           step_size=config_.PATH_RES_QUICK)
+                                               step_size=config_.PATH_RES_QUICK)
         # find obstacle to follow as nearest obstacle
         nearest_intersect_dist = math.inf
         for obstacle in obstacles:
             intersect = obstacle.get_intersect_with_path_3d(cur_pos, path_to_check, config_.ROB_SPEED,
-                                                        config_.TANGENT_DIST_INNER)
+                                                            config_.TANGENT_DIST_INNER)
             if intersect is not None:
                 d = cur_pos.dist_2d(intersect)
                 if d <= nearest_intersect_dist:
@@ -135,8 +144,7 @@ def init(obstacles: [ObstacleSegment], cur_pos: Node, cur_heading: float, goal_p
                     obst_id_to_follow = obstacle.id
         if obst_to_follow is None:
             # did not find an obstacle
-            # TODO handle this exception
-            logger.warning("BF.init(): Could not find an obstacle to follow")
+            logger.warning("BF init(): Could not find an obstacle to follow")
             return False
 
     if obst_dir is None:
@@ -163,13 +171,14 @@ def find_new_bf_waypoint(obst_to_follow: ObstacleSegment, cur_pos: Node, orig_po
             bf_waypoint_candidates.append(tp)
 
     if len(bf_waypoint_candidates) == 0:
-        logger.critical("BF.find_new_bf_waypoint(): No tangent points found in current direction!")
+        logger.critical("BF find_new_bf_waypoint(): No tangent points found in current direction!")
         return None
-        #raise RuntimeError("BF.find_new_bf_waypoint(): No tangent points found in current direction!")
     else:
         if len(bf_waypoint_candidates) > 1:
-            logger.info("there were " + str(len(bf_waypoint_candidates)) + " bf_waypoint candidates.")
-        # select tangent point as bf_waypoint on condition
+            logger.info("BF find_new_bf_waypoint():there were " + str(len(bf_waypoint_candidates))
+                        + " bf_waypoint candidates.")
+
+        # select tangent point as bf_waypoint on condition <first>
         return BfWaypoint(bf_waypoint_candidates[0], obst_to_follow, orig_pos)
 
 
@@ -191,8 +200,7 @@ def plan(cur_pos: Node, goal_pos: Node, cur_heading: float, new_obst_segments: [
 
     # check if we lost the obstacle
     if obst_to_follow is None:
-        # TODO remember followed obstacles in case you loose sight of them and then they reappear
-        logger.info("BF.plan(): Lost obstacle segment; End of Routine")
+        logger.info("BF: Lost obstacle segment; End of Routine")
         return NavMode.MTG, None
     else:
         # update BF Waypoint
@@ -201,12 +209,10 @@ def plan(cur_pos: Node, goal_pos: Node, cur_heading: float, new_obst_segments: [
         # Calculate d_reach, d_followed, v_diff, d_followed_rel
         v_diff = bf_waypoint.get_pos_change()
         d_reach = goal_pos.dist_2d(bf_waypoint.cur_pos)
-        if v_followed is None or v_diff is None:
-            print("whoaa")
+        assert v_followed is not None and v_diff is not None
+
         v_followed_rel = v_followed + v_diff
         d_followed_rel = v_followed_rel.dist_2d(goal_pos)
-
-        # TODO check if we passed bfPoint?
 
         # if d_reach < d_followed_rel
         if d_followed_rel - d_reach > config_.D_TOL:
@@ -229,7 +235,6 @@ def plan(cur_pos: Node, goal_pos: Node, cur_heading: float, new_obst_segments: [
             return NavMode.BF, path
 
 
-# works
 def reset():
     global obst_id_to_follow, bf_waypoint, v_followed, obst_dir
     obst_id_to_follow = math.nan

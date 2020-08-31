@@ -1,12 +1,9 @@
-import logging
 import math
 import time
 from copy import deepcopy
 
-import numpy as np
 import networkx as nx
-from heapq import heappush, heappop
-from itertools import count
+import numpy as np
 
 from src.bot.ObstacleSegment import ObstacleSegment
 from src.geom.Cone import Cone
@@ -15,116 +12,13 @@ from src.utils.DubinsPath import find_path_weight
 from src.utils.sbMath import is_point_behind_ref
 
 
-def k_shortest_paths(g, source, target, k=1, weight='weight'):
-    """Returns the k-shortest paths from source to target in a weighted graph G.
-    Parameters
-    https://github.com/guilhermemm/k-shortest-path/blob/master/k_shortest_paths.py
-    ----------
-    G : NetworkX graph
-    source : node
-       Starting node
-    target : node
-       Ending node
-
-    k : integer, optional (default=1)
-        The number of shortest paths to find
-    weight: string, optional (default='weight')
-       Edge data key corresponding to the edge weight
-    Returns
-    -------
-    lengths, paths : lists
-       Returns a tuple with two lists.
-       The first list stores the length of each k-shortest path.
-       The second list stores each k-shortest path.
-    Raises
-    ------
-    NetworkXNoPath
-       If no path exists between source and target.
-    Examples
-    --------
-    >>> G=nx.complete_graph(5)
-    >>> print(k_shortest_paths(G, 0, 4, 4))
-    ([1, 2, 2, 2], [[0, 4], [0, 1, 4], [0, 2, 4], [0, 3, 4]])
-    Notes
-    ------
-    Edge weight attributes must be numerical and non-negative.
-    Distances are calculated as sums of weighted edges traversed.
+class DynamicWeb:
     """
-    if source == target:
-        return [0], [[source]]
+    MTG's dynamic web that spans 3D space-time, connecting obstacle tangent points
+    """
 
-    length, path = nx.single_source_dijkstra(g, source, target, weight=weight)
-    if target not in length:
-        raise nx.NetworkXNoPath("node %s not reachable from %s" % (source, target))
-
-    lengths = [length[target]]
-    paths = [path[target]]
-    c = count()
-    b = []
-    g_original = g.copy()
-
-    for i in range(1, k):
-        for j in range(len(paths[-1]) - 1):
-            spur_node = paths[-1][j]
-            root_path = paths[-1][:j + 1]
-
-            edges_removed = []
-            for c_path in paths:
-                if len(c_path) > j and root_path == c_path[:j + 1]:
-                    u = c_path[j]
-                    v = c_path[j + 1]
-                    if g.has_edge(u, v):
-                        edge_attr = g.edge[u][v]
-                        g.remove_edge(u, v)
-                        edges_removed.append((u, v, edge_attr))
-
-            for n in range(len(root_path) - 1):
-                node = root_path[n]
-                # out-edges
-                for u, v, edge_attr in g.edges_iter(node, data=True):
-                    g.remove_edge(u, v)
-                    edges_removed.append((u, v, edge_attr))
-
-                if g.is_directed():
-                    # in-edges
-                    for u, v, edge_attr in g.in_edges_iter(node, data=True):
-                        g.remove_edge(u, v)
-                        edges_removed.append((u, v, edge_attr))
-
-            spur_path_length, spur_path = nx.single_source_dijkstra(g, spur_node, target, weight=weight)
-            if target in spur_path and spur_path[target]:
-                total_path = root_path[:-1] + spur_path[target]
-                total_path_length = get_path_length(g_original, root_path, weight) + spur_path_length[target]
-                heappush(b, (total_path_length, next(c), total_path))
-
-            for e in edges_removed:
-                u, v, edge_attr = e
-                g.add_edge(u, v, edge_attr)
-
-        if b:
-            (l, _, p) = heappop(b)
-            lengths.append(l)
-            paths.append(p)
-        else:
-            break
-
-    return lengths, paths
-
-
-def get_path_length(g, path, weight='weight'):
-    length = 0
-    if len(path) > 1:
-        for i in range(len(path) - 1):
-            u = path[i]
-            v = path[i + 1]
-
-            length += g.edge[u][v].get(weight, 1)
-
-    return length
-
-
-class Graph:
     def __init__(self, cur_pos: Node, goal_pos: Node, cur_heading: float, robot_speed, logger):
+        """initialise web"""
         self.logger = logger
         self.best_paths = []
 
@@ -140,19 +34,29 @@ class Graph:
         self.DG.add_edge(self.cur_pos, self.goal_pos, weight=self.cur_pos.dist_2d(self.goal_pos))
 
     def move_rob_to(self, new_pos: Node, new_heading: float):
+        """
+        updates robot's current position in web, removing the old node
+        :param new_pos: new position node
+        :param new_heading: new heading
+        """
         self.DG.add_node(new_pos)
         if self.cur_pos is not None and not self.cur_pos == new_pos:
             self.DG.remove_node(self.cur_pos)
         self.cur_pos = new_pos
         self.cur_heading = new_heading
 
-    def update_shortest_path(self, TURN_RADIUS, is_sphere=False):
+    def update_shortest_path(self, turn_radius, is_sphere=False):
+        """
+        Dijkstra's algorithm to find the shortest path through the web
+        :param turn_radius: robot's turn radius
+        :param is_sphere: if the robot is holonomic
+        :return: list or nodes on shortest path to goal or None if no path exists
+        """
         time_0 = time.perf_counter()
-        settledNodes = []
-        unsettledNodes = [self.cur_pos]
+        settled_nodes = []
+        unsettled_nodes = [self.cur_pos]
         distances = {self.cur_pos: 0.}
         predecessors = {}
-        #printl = []
 
         def get_dist(_node):
             nonlocal distances
@@ -162,38 +66,38 @@ class Graph:
 
         def get_min(_nodes):
             _min = _nodes[0]
-            for n in _nodes:
-                if get_dist(n) < get_dist(_min):
-                    _min = n
+            for _n in _nodes:
+                if get_dist(_n) < get_dist(_min):
+                    _min = _n
             return _min
 
         def get_neighbors(_node):
-            nonlocal settledNodes
+            nonlocal settled_nodes
             res_l = []
             for _n in nx.all_neighbors(self.DG, _node):
-                if not _n in settledNodes:
+                if not _n in settled_nodes:
                     res_l.append(_n)
             return res_l
 
         def calc_distances(_node):
-            nonlocal distances, predecessors, unsettledNodes
+            nonlocal distances, predecessors, unsettled_nodes
             for _target in get_neighbors(_node):
                 if _node == self.cur_pos:
                     if is_sphere:
                         d = _node.dist_2d(_target)
                     else:
-                        d = find_path_weight(_node, self.cur_heading, [_target], TURN_RADIUS)
+                        d = find_path_weight(_node, self.cur_heading, [_target], turn_radius)
                 else:
-                    d = _node.dist_2d(_target)  # use dubins path here?
+                    d = _node.dist_2d(_target)
                 if get_dist(_target) > (get_dist(_node) + d):
                     distances[_target] = get_dist(_node) + d
                     predecessors[_target] = _node
-                    unsettledNodes.append(_target)
+                    unsettled_nodes.append(_target)
 
-        while len(unsettledNodes) > 0:
-            n = get_min(unsettledNodes)
-            settledNodes.append(n)
-            unsettledNodes.remove(n)
+        while len(unsettled_nodes) > 0:
+            n = get_min(unsettled_nodes)
+            settled_nodes.append(n)
+            unsettled_nodes.remove(n)
             calc_distances(n)
 
         if self.goal_pos in predecessors:
@@ -205,26 +109,36 @@ class Graph:
 
             time_1 = time.perf_counter()
             if time_1 - time_0 > 2:
-                print("Navigation.update_shortest_path() took : %d sec" % (time_1 - time_0))
+                print("Navigation update_shortest_path(): took : %d sec" % (time_1 - time_0))
             return res_path
         else:
             time_1 = time.perf_counter()
             if time_1 - time_0 > 2:
-                print("Navigation.update_shortest_path() took : %d sec" % (time_1 - time_0))
+                print("Navigation update_shortest_path(): took : %d sec" % (time_1 - time_0))
 
             return None
 
-
     def rem_near_nodes_from_path(self, cur_pos: Node, removal_dist):
+        """
+        Removes nodes behind the robot's current position as they are irrelevant
+        :param cur_pos: robot's current position
+        :param removal_dist: threshold used to determine if nodes are sufficiently behind position
+        """
         if self.cur_path is not None and len(self.cur_path) > 0:
             p_p: [Node] = [Node.from_list(x.as_list_3d()) for x in self.cur_path]
             for i in np.arange(1, len(p_p)):
                 if cur_pos.dist_2d(p_p[i]) < removal_dist:
                     self.cur_path.remove(p_p[i])
 
-    # should work
     def update(self, obstacles: [ObstacleSegment], new_rob_pos: Node, robot_speed: float, tangent_dist_out: float,
                tangent_dist_in: float, removal_dist: float, rob_radius: float):
+        """
+        Web update routine.
+         - removes points behind robot
+         - add new tangent points
+         - prunes old nodes if web becomes too complicated
+         - interconnect all nodes using sensed obstacleSegments
+        """
         # remove all edges
         self.DG = nx.create_empty_copy(self.DG)
 
@@ -236,8 +150,6 @@ class Graph:
 
         # add new tangent points
         rob_cone = Cone(new_rob_pos, robot_speed)
-        # 1./ robot_speed produced tangent points but near the base of obstacles
-
         n_to_add = []
         for obst in obstacles:
             tangent_points = obst.get_tangent_points_3d(rob_cone, tangent_dist_out, tangent_dist_in, self.logger)
@@ -247,7 +159,7 @@ class Graph:
                 n_to_add.extend(tangent_points)
 
         if (len(n_to_add) + len(self.DG.nodes)) > (len(obstacles) * 3 + 4):
-            self.logger.info("Pruning web to avoid performance penalties")
+            self.logger.debug("Navigation update():Pruning web to avoid performance penalties")
             for n in deepcopy(self.DG.nodes):
                 if not n == self.cur_pos and not n == self.goal_pos:
                     self.DG.remove_node(n)
@@ -257,7 +169,6 @@ class Graph:
         # interconnect all points
         self.interconnect_from(new_rob_pos, robot_speed, obstacles, rob_radius, tangent_dist_in, removal_dist)
 
-    # works
     def add_nodes_2d(self, new_nodes: [Node], removal_dist):
         """Adds new nodes to graph but removes all old nodes that were within removal_dist of new ones"""
         for new_node in new_nodes:
@@ -271,15 +182,34 @@ class Graph:
 
             self.DG.add_node(new_node.as_node_2d())
 
-    # works
     def get_nodes_by_dist(self, ref_point: Node) -> [Node]:
         """Returns nodes in increasing order of distance to ref point"""
         nodes = np.array([(ref_point.dist_2d(x), x) for x in self.DG.nodes])
         return nodes[np.argsort(nodes[:, 0])][:, 1]
 
-    # hopefully works
     def interconnect_from(self, new_pos_3d: Node, robot_speed: float, obstacles: [ObstacleSegment],
                           rob_radius: float, tangent_dist_in: float, removal_dist: float):
+        """
+        Interconnects nodes of web, starting with the robot's current position.
+        Updates nodes' 3D position along the way.
+        Procedure:
+         - For each node b in other nodes sorted in ascending order by distance to current position:
+            - if a clear path exists to node b:
+                - calculate node b's z coordinate by using distance over speed
+                - add edge to node b
+                - add node b to processed nodes
+         - while there are nodes in the processed nodes:
+            - for each node a in processed nodes:
+                - for each node b in other nodes sorted in ascending order by distance to node a:
+                    - if clear path to node b exists:
+                        - if we found a shorter path to node b since the new z coordinate is less than the old one:
+                            - update node b's z coordinate
+                            - remove all previous out-edges of node-b
+                            - add edge node a to node b
+                            - add node b to processed nodes
+                        - else:
+                            - add edge node a to node b
+        """
         time_0 = time.perf_counter()
         self.DG.add_node(new_pos_3d)
         nodes_i = deepcopy(self.get_nodes_by_dist(new_pos_3d))
@@ -287,9 +217,9 @@ class Graph:
         # loop all nearby nodes
         for node_i in nodes_i[1:]:
             # check if the path from newPos to node_i is clear
-            t_d = tangent_dist_in # 1.01*rob_radius if node_i == self.goal_pos else tangent_dist_in
-            if not Graph.__intersects__(obstacles, [node_i.as_node_2d()], new_pos_3d, robot_speed,
-                                        t_d):
+            t_d = tangent_dist_in
+            if not DynamicWeb.__intersects__(obstacles, [node_i.as_node_2d()], new_pos_3d, robot_speed,
+                                             t_d):
                 # remove 2d node
                 self.DG.remove_node(node_i)
                 # add 3d node
@@ -314,7 +244,7 @@ class Graph:
                 for node in nodes:
                     # dont create edges to newPos (we already have) nor themselves nor to blocked nodes
                     if (not node == dr_node) and (not node == new_pos_3d) and \
-                            not Graph.__intersects__(obstacles, [node.as_node_2d()], dr_node, robot_speed,
+                            not DynamicWeb.__intersects__(obstacles, [node.as_node_2d()], dr_node, robot_speed,
                                                      1.01*rob_radius):
                         # find 3d location
                         z = dr_node.z() + (dr_node.dist_2d(node) / robot_speed)
@@ -323,19 +253,17 @@ class Graph:
                             # found path to node that was quicker than previous best path
                             # preserve other edges to node
                             prev_edges_in = deepcopy(self.DG.in_edges(node))
-                            #prev_edges_out = deepcopy(self.DG.out_edges(node))
+
                             # remove old node
                             self.DG.remove_node(node)
                             new_node = Node.from_list([node.x(), node.y(), z])
                             # add new node and edge to node
                             self.DG.add_node(new_node)
                             self.DG.add_edge(dr_node, new_node)
-                            # add back in and out edges
+                            # add back in edges
                             for e_in in prev_edges_in:
                                 self.DG.add_edge(e_in[0], new_node)
-                            #for e_out in prev_edges_out:
-                            #    self.DG.add_edge(new_node, e_out[1])
-                                # TODO update zs of e_out[1] here? - will get out of hand very quickly
+
                             # add to processed_nodes
                             processed_nodes.append(new_node)
 
@@ -347,10 +275,8 @@ class Graph:
                             self.DG.add_edge(dr_node, node)
         time_1 = time.perf_counter()
         if time_1 - time_0 > 2:
-            print("Navigation.interconnect() took : %d sec" % (time_1 - time_0))
+            print("Navigation interconnect(): took : %d sec" % (time_1 - time_0))
 
-
-    # ok
     def reset_paths(self):
         self.cur_path = None
         self.best_paths = []

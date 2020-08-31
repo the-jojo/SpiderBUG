@@ -2,19 +2,17 @@ import math
 
 from src.bot.ObstacleSegment import ObstacleSegment
 from src.geom.Node import Node
-from src.nav.Navigation import Graph
+from src.nav.Navigation import DynamicWeb
 from src.utils.config import Config
 from src.utils.modes import NavMode
+from src.utils.sbMath import reduce_path
 
-web: Graph or None = None
+web: DynamicWeb or None = None
 h_last: float = math.inf
 logger = None
 config_ = Config()
 
-#tmp_i = 0
 
-
-# ok
 def evaluate_path(cur_pos: Node, path: [Node]) -> float:
     """Returns the path distance in straight 2d lines from cur_pos"""
     if path is None:
@@ -28,7 +26,6 @@ def evaluate_path(cur_pos: Node, path: [Node]) -> float:
     return length
 
 
-# ok
 def init(cur_pos: Node, cur_heading: float, goal_pos: Node, logger_, config):
     """initializes MTG, creating web if necessary"""
     global web, logger, config_
@@ -36,7 +33,7 @@ def init(cur_pos: Node, cur_heading: float, goal_pos: Node, logger_, config):
     logger = logger_
     if web is None:
         # init
-        web = Graph(cur_pos, goal_pos, cur_heading, config_.ROB_SPEED, logger_)
+        web = DynamicWeb(cur_pos, goal_pos, cur_heading, config_.ROB_SPEED, logger_)
 
 
 # ok
@@ -51,25 +48,20 @@ def check_path_obstruction(cur_pos: Node, path: [Node], obstacles: [ObstacleSegm
     return False
 
 
-def reduce_path(path):
-    y = path[0::int(len(path) / min(200, len(path)))]
-    y.append(path[-1])
-    return y
-
-
 # ok
 def update_web(cur_pos: Node, cur_heading: float, new_obstacles: [ObstacleSegment], robot_speed: float, fut_path: [Node],
                tangent_dist_out: float, tangent_dist_in: float, turn_radius: float):
     """update-web subprocedure - if path is obstructed then it moves rob in web and updates connections and paths"""
     global web, config_
 
-    path_to_check = reduce_path(fut_path) if len(fut_path) > 0 and fut_path[-1].as_node_2d() == web.goal_pos.as_node_2d() else web.cur_path
+    path_to_check = reduce_path(fut_path, 100) \
+        if len(fut_path) > 0 and fut_path[-1].as_node_2d() == web.goal_pos.as_node_2d() \
+        else web.cur_path
 
     debug_b = 0
 
     # check each obstacle if it blocks the current path
     if debug_b or web.cur_path is None or check_path_obstruction(cur_pos, path_to_check, new_obstacles, robot_speed):
-        #logger.info("MTG path was blocked - updating web")
         # update pos of robot in web
         web.move_rob_to(cur_pos, cur_heading)
 
@@ -84,7 +76,6 @@ def update_web(cur_pos: Node, cur_heading: float, new_obstacles: [ObstacleSegmen
         web.rem_near_nodes_from_path(cur_pos, config_.NODE_REMOVAL_DIST)
 
 
-# ok
 def plan(cur_pos: Node, cur_heading: float, rob_speed: float, goal_pos: Node, new_obstacles: [ObstacleSegment],
          fut_path: [Node]) -> (NavMode, [Node]):
     """updates web if necessary, returns current best path or None if exit-condition is met"""
@@ -102,17 +93,16 @@ def plan(cur_pos: Node, cur_heading: float, rob_speed: float, goal_pos: Node, ne
 
     if math.isinf(h) or h - h_last > config_.H_TOL:
         # switch to BF
-        logger.info("MTG.plan(): path length increased by %.2f from last time" %(h - h_last))
+        logger.info("MTG: path length increased by %.2f from last time" %(h - h_last))
         if len(new_obstacles) > 0:
-            logger.info("MTG.plan(): End of Routine")
+            logger.info("MTG: End of Routine")
             return NavMode.BF, None
         else:
-            logger.info("MTG.plan(): No obstacle to follow - staying in MTG")
+            logger.info("MTG: No obstacle to follow - staying in MTG")
     h_last = h
     return NavMode.MTG, path
 
 
-# ok
 def reset():
     global web, h_last
     web = None

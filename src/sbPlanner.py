@@ -1,23 +1,15 @@
 import logging
+import sys
+import time
+
+import dill as pickle
+import numpy as np
 import pyximport
-import numpy
+import zmq
 
 from src.utils.config import Config, default_config
 
-pyximport.install(language_level=3, setup_args={"include_dirs": numpy.get_include()})
-
-"""from pycallgraph import PyCallGraph
-from pycallgraph.output import GraphvizOutput
-from pycallgraph import Config
-from pycallgraph import GlobbingFilter
-config = Config()
-config.trace_filter = GlobbingFilter(exclude=[])"""
-
-import zmq
-import time
-import numpy as np
-import dill as pickle
-import sys
+pyximport.install(language_level=3, setup_args={"include_dirs": np.get_include()})
 
 from src.bot.ObstacleSegment import ObstacleSegment
 from src.geom.Node import Node
@@ -36,9 +28,19 @@ config_ = Config()
 up_path = []
 
 
-# should be ok
 def plan(cur_pos_: Node, cur_heading_: float, goal_pos_: Node, new_obstacles_segments_: [ObstacleSegment],
          fut_path_: [Node], logger_) -> [Node]:
+    """
+    Plans a path from the current position and current heading to the goal position accounting for
+    sensed obstacles. None is returned if the behaviour is switched between mtg and bf or back
+    :param cur_pos_: current position
+    :param cur_heading_: current heading
+    :param goal_pos_: goal position
+    :param new_obstacles_segments_: new sensed obstacle segments
+    :param fut_path_: current future path
+    :param logger_: logger
+    :return: path or None
+    """
     global nav_mode, config_, loop_count
 
     if nav_mode == NavMode.MTG:
@@ -46,17 +48,17 @@ def plan(cur_pos_: Node, cur_heading_: float, goal_pos_: Node, new_obstacles_seg
 
         mtg.init(cur_pos_, cur_heading_, goal_pos_, logger_, config_)
 
-        next_mode_, path_ = mtg.plan(cur_pos_, cur_heading_, config_.ROB_SPEED, goal_pos_, new_obstacles_segments_, fut_path_)
+        next_mode_, path_ = mtg.plan(cur_pos_, cur_heading_, config_.ROB_SPEED, goal_pos_, new_obstacles_segments_,
+                                     fut_path_)
 
         if next_mode_ == NavMode.BF:
             # encountered C-shaped obstacle and switching next turn
             v_int = None
             v_obst = None
             for obst in new_obstacles_segments_:
-                path_to_check = [cur_pos_, goal_pos_]# find_path_complete(cur_pos_, cur_heading_, [goal_pos_], config_.TURN_RADIUS,
-                                                   #step_size=config_.PATH_RES_QUICK)
+                path_to_check = [cur_pos_, goal_pos_]
                 v_int_new = obst.get_intersect_with_path_3d(cur_pos_, path_to_check, config_.ROB_SPEED,
-                                                        config_.TANGENT_DIST_INNER, False)
+                                                            config_.TANGENT_DIST_INNER, False)
                 if v_int_new is not None and (v_int is None or v_int_new.dist_2d(cur_pos_) <= v_int.dist_2d(cur_pos_)):
                     v_int = v_int_new
                     v_obst = obst
@@ -67,11 +69,11 @@ def plan(cur_pos_: Node, cur_heading_: float, goal_pos_: Node, new_obstacles_seg
                 bf.v_followed = Node.from_array(get_point_towards(cur_pos_.as_ndarray_2d(), h, d))
                 bf.obst_id_to_follow = v_obst.id
             if bf.v_followed is None:
-                logger_.info("No direct intersect with an obstacle was found. Continue in MTG")
+                logger_.info("PLAN: No direct intersect with an obstacle was found. Continue in MTG")
                 # there was no direct intersect btw path_to_goal and any obst, so we just continue
                 next_mode_ = NavMode.MTG
             else:
-                logger_.info(" $ Switching to BF")
+                logger_.info("PLAN: Switching to BF")
                 # reset current path and best paths in web
                 mtg.reset()
     else:
@@ -81,10 +83,11 @@ def plan(cur_pos_: Node, cur_heading_: float, goal_pos_: Node, new_obstacles_seg
         if res:
             next_mode_, path_ = bf.plan(cur_pos_, goal_pos_, cur_heading_, new_obstacles_segments_)
         else:
+            # lost or escaped the obstacle; no need to do the planning
             next_mode_, path_ = NavMode.MTG, None
 
         if next_mode_ == NavMode.MTG:
-            logger_.info("$ Switching to MTG")
+            logger_.info("PLAN: Switching to MTG")
 
             # escaped obstacle switching next turn
             bf.reset()
@@ -158,24 +161,28 @@ def main(logger):
     poller.register(posh_socket, zmq.POLLIN)
     socks = dict()
 
-    logger.info(" $ Starting with MTG")
+    logger.info("PLAN: Starting with MTG")
     logger.tangent_warning_outer = 0
     logger.tangent_warning_inner = 0
 
     time.sleep(1)
 
     def poll_all():
+        """
+        Polls sbPerception and sbRobot for new obstacles and new position
+        :return:
+        """
         nonlocal poller, socks, sensed_obstacle_segments, cur_pos, cur_heading, cur_speed, goal_pos, fut_path, ex_mode
         socks = dict(poller.poll(0))
         # receive obstacles
         if obst_socket in socks and socks[obst_socket] == zmq.POLLIN:
-            a_msg = obst_socket.recv()
-            sensed_obstacle_segments = pickle.loads(a_msg[len(default_config['PUB_PREFIX']):])
+            _msg = obst_socket.recv()
+            sensed_obstacle_segments = pickle.loads(_msg[len(default_config['PUB_PREFIX']):])
 
-        # receive position, heading, and speed
+        # receive position, heading, future path
         if posh_socket in socks and socks[posh_socket] == zmq.POLLIN:
-            a_msg = posh_socket.recv()
-            t_cur_pos, cur_heading, goal_pos, fut_path = pickle.loads(a_msg[len(default_config['PUB_PREFIX']):])
+            _msg = posh_socket.recv()
+            t_cur_pos, cur_heading, goal_pos, fut_path = pickle.loads(_msg[len(default_config['PUB_PREFIX']):])
             goal_pos = Node.from_list(goal_pos)
             fut_path = [Node.from_array(fp) for fp in fut_path]
             if t_cur_pos is None:
@@ -189,7 +196,8 @@ def main(logger):
 
         if ctrl_socket in socks and socks[ctrl_socket] == zmq.POLLIN:
             a_msg = ctrl_socket.recv()
-            if a_msg is None: continue
+            if a_msg is None:
+                continue
             (m_msg, config_) = pickle.loads(a_msg[len(default_config['PUB_PREFIX']):])
             if m_msg == "SHUTDOWN":
                 ex_mode = ExMode.STOP
@@ -201,7 +209,7 @@ def main(logger):
             elif m_msg == "START":
                 ex_mode = ExMode.RUNNING
             elif m_msg == "RESTART":
-                logger.info("+++ Restarting Planner +++")
+                logger.info(" > Restarting Planner")
                 ex_mode = ExMode.RUNNING
                 cur_pos, goal_pos, cur_heading, cur_speed, fut_path, up_path = None, None, 0, 0, [], []
                 sensed_obstacle_segments = []
@@ -228,12 +236,9 @@ def main(logger):
             logger.tangent_warning_outer = logger.tangent_warning_outer - 1
             logger.tangent_warning_inner = logger.tangent_warning_inner - 1
             time_0 = time.perf_counter()
-            #graphviz = GraphvizOutput(
-            #    output_file='..\\plts\\perf\\planner_' + str(loop_count) + '.png')
-            #with PyCallGraph(output=graphviz, config=config):
             tmp = poll_all()
             if tmp == -1:
-                logger.error("sbRobot indicated crash. Pausing planner")
+                logger.error(" > sbRobot indicated crash. Pausing planner")
                 ex_mode = ExMode.PAUSED
                 continue
 
@@ -254,11 +259,8 @@ def main(logger):
                     up_path.append(pos)
                 except RuntimeError as e:
                     logger.error(e)
-                    logger.info(" > Pausing Planner to avoid more errors")
+                    logger.warning(" > Pausing Planner to avoid more errors")
                     ex_mode = ExMode.PAUSED
-
-                #if path is None:
-                #    logger.warning("Neither MTG nor BF found path!")
 
             if path is not None:
                 # send path to sbRobot
@@ -266,27 +268,29 @@ def main(logger):
 
                 # send nodes and planning state to GUI
                 if nav_mode == NavMode.MTG:
-                    state_socket.send(default_config['PUB_PREFIX'].encode() + pickle.dumps((mtg.web.DG.nodes, mtg.web.DG.edges, cur_pos, up_path)))
+                    state_socket.send(default_config['PUB_PREFIX'].encode()
+                                      + pickle.dumps((mtg.web.DG.nodes, mtg.web.DG.edges, cur_pos, up_path)))
                 elif bf.bf_waypoint is not None:
-                    state_socket.send(default_config['PUB_PREFIX'].encode() + pickle.dumps(([bf.bf_waypoint.cur_pos], [], cur_pos, up_path)))
+                    state_socket.send(default_config['PUB_PREFIX'].encode()
+                                      + pickle.dumps(([bf.bf_waypoint.cur_pos], [], cur_pos, up_path)))
 
             loop_count += 1
             time_1 = time.perf_counter()
             if time_1 - time_0 > 2:
-                logger.info(" ! took : %d sec", time_1 - time_0)
+                logger.warning("PLAN: took : %d sec", time_1 - time_0)
 
         if ex_mode == ExMode.STEP:
             # end step
             ex_mode = ExMode.PAUSED
 
-        # sleep
+        # sleep and loop
         time.sleep(0.01)
 
 
 if __name__ == "__main__":
     # setup logging
-    format = "%(name)s [%(loop_count)-4s] - %(levelname)-8s: %(message)s"
-    logging.basicConfig(format=format, level=logging.INFO,) # , level=logging.INFO, datefmt="%H:%M:%S"
+    format_ = "%(name)s [%(loop_count)-4s] - %(levelname)-8s: %(message)s"
+    logging.basicConfig(format=format_, level=logging.INFO)
     old_factory = logging.getLogRecordFactory()
 
     def record_factory(*args, **kwargs):

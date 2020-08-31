@@ -4,6 +4,18 @@ import numpy as np
 from src.geom.Node import Node
 
 
+def reduce_path(path, res):
+    """
+    Reduces path resolution by taking only every resth point
+    :param res: resolution or resulting path
+    :param path: list or numpy array with path points
+    :return: reduced path
+    """
+    y = path[0::int(len(path) / min(res, len(path)))]
+    y.append(path[-1])
+    return y
+
+
 def calc_angle(a: np.ndarray, b: np.ndarray, c: np.ndarray):
     """
     Gets an angle in radians between points a,b,c

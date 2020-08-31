@@ -1,0 +1,27 @@
+Language;Presorting obstacle and path points by distance;Cacheing Obstacle Planes;Early Exit;Intersect exists;Total time taken
+Pure python;0;0;0;1;73.26
+Pure python;0;0;0;0;116.58
+Pure python;1;0;0;1;3.15
+Pure python;1;0;0;0;119.28
+Pure python;1;0;1;1;3.23
+Pure python;1;0;1;0;3.02
+Pure python;0;1;0;1;66.63
+Pure python;0;1;0;0;104.35
+Python with cython backend;0;0;0;1;70.31
+Python with cython backend;0;0;0;0;97.30
+Python with cython backend;1;0;0;1;0.64
+Python with cython backend;1;0;0;0;96.28
+Python with cython backend;1;0;1;1;0.44
+Python with cython backend;1;0;1;0;0.44
+Python with cython backend;0;1;0;1;73.15
+Python with cython backend;0;1;0;0;95.88
+Pure cython;0;0;0;1;32.56
+Pure cython;0;0;0;0;40.14
+Pure cython;1;0;0;1;0.39
+Pure cython;1;0;0;0;43.13
+Pure cython;1;0;1;1;0.30
+Pure cython;1;0;1;0;0.29
+Pure cython;0;1;0;1;15.12
+Pure cython;0;1;0;0;21.35
+Pure cython;1;1;1;1;0.30
+Pure cython;1;1;1;0;0.29

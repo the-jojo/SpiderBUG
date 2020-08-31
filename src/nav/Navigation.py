@@ -159,7 +159,7 @@ class DynamicWeb:
                 n_to_add.extend(tangent_points)
 
         if (len(n_to_add) + len(self.DG.nodes)) > (len(obstacles) * 3 + 4):
-            self.logger.debug("Navigation update():Pruning web to avoid performance penalties")
+            self.logger.debug("Navigation update(): Pruning web to avoid performance penalties")
             for n in deepcopy(self.DG.nodes):
                 if not n == self.cur_pos and not n == self.goal_pos:
                     self.DG.remove_node(n)

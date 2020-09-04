@@ -17,5 +17,6 @@ extensions = [
 
 setup(
     name="SpiderBUG",
-    ext_modules=cythonize(extensions), install_requires=['dill', 'matplotlib', 'numpy', 'pyzmq', 'networkx']
+    ext_modules=cythonize(extensions), install_requires=['dill', 'matplotlib', 'numpy', 'pyzmq', 'networkx', 'pybullet',
+                                                         'pyquaternion']
 )

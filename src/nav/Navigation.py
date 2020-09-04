@@ -5,7 +5,7 @@ from copy import deepcopy
 import networkx as nx
 import numpy as np
 
-from src.bot.ObstacleSegment import ObstacleSegment
+from src.nav.ObstacleSegment import ObstacleSegment
 from src.geom.Cone import Cone
 from src.geom.Node import Node
 from src.utils.DubinsPath import find_path_weight

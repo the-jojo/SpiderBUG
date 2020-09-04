@@ -11,7 +11,7 @@ from src.utils.config import Config, default_config
 
 pyximport.install(language_level=3, setup_args={"include_dirs": np.get_include()})
 
-from src.bot.ObstacleSegment import ObstacleSegment
+from src.nav.ObstacleSegment import ObstacleSegment
 from src.geom.Node import Node
 import src.nav.BoundaryFollowing as bf
 import src.nav.MotionToGoal as mtg

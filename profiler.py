@@ -11,7 +11,7 @@ from pycallgraph import Config
 from pycallgraph import GlobbingFilter
 
 from src import sbPlanner
-from src.bot.ObstacleSegment import ObstacleSegment
+from src.nav.ObstacleSegment import ObstacleSegment
 from src.geom.Node import Node
 from src.nav import BoundaryFollowing
 from src.utils.modes import NavMode

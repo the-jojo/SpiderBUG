@@ -1,4 +1,3 @@
-import logging
 import numpy
 import pyximport
 
@@ -6,8 +5,7 @@ import pyximport
 
 pyximport.install(setup_args={"include_dirs": numpy.get_include()}, language_level=3)
 
-from src.geom.Lines import Ray, LineSegment
-from src.bot.ObstacleSegment import ObstacleSegment
+from src.nav.ObstacleSegment import ObstacleSegment
 from src.geom.Node import Node
 from src.geom_old.Utils import Node as oNode
 

@@ -6,7 +6,7 @@ import pyximport
 
 pyximport.install(setup_args={"include_dirs": np.get_include()}, language_level=3)
 
-from src.bot.ObstacleSegment import ObstacleSegment
+from src.nav.ObstacleSegment import ObstacleSegment
 from src.geom.Node import Node
 from src.utils.config import Config
 from src.geom.Cone import Cone

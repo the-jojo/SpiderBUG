@@ -1,20 +1,14 @@
 import logging
-import pyximport
-import numpy
 import sys
+from copy import deepcopy
 
-from src.utils.config import Config, default_config
+import numpy
+import pyximport
+import zmq
 
 pyximport.install(setup_args={"include_dirs": numpy.get_include()})
 
-from copy import deepcopy
-import zmq
-import time
-import numpy as np
-import pybullet as p
-import dill as pickle
-
-from src.utils.DubinsPath import find_path
+from src.utils.config import Config, default_config
 from src.utils.modes import ExMode
 from src.bot.Environment import *
 from src.utils.sbMath import is_path_point_sensible
@@ -31,18 +25,26 @@ scenes = [scen_0, scen_1, scen_2, scen_3, scen_4, scen_5, scen_6, scen_7]
 
 
 def load_env() -> Scenario:
+    """
+    Runs the scenario configuration function corresponding to the obstacle course set in the config
+    :return: Scenario
+    """
     env_id = config_.OBST_COURSE
 
     return scenes[env_id](config_)
 
 
-def start_env(env_id) -> Scenario:
+def start_env() -> Scenario:
+    """
+    Loads the environment and then instantiates it
+    :return: instantiated Scenario
+    """
     env = load_env()
-    env.instantiate(config_.HEADLESS)
+    env.instantiate()
     return env
 
 
-def main(logger, ):
+def main(logger):
     global loop_count, config_
 
     zmq_context = zmq.Context.instance()
@@ -79,7 +81,7 @@ def main(logger, ):
         (m_msg, config_) = pickle.loads(a_msg[len(default_config['PUB_PREFIX']):])
         if "START" in m_msg or "RESTART" in m_msg:
             ex_mode = ExMode.RUNNING
-            logger.info("STARTED, config ID: %s" % config_.OBST_COURSE)
+            logger.info("STARTED with scenario: %s" % config_.OBST_COURSE)
             break
         if "SHUTDOWN" in m_msg:
             ex_mode = ExMode.STOP
@@ -87,7 +89,7 @@ def main(logger, ):
             exit(0)
         elif "STEP" in m_msg:
             ex_mode = ExMode.STEP
-            logger.info("STARTED STEP, config ID: %s" % config_.OBST_COURSE)
+            logger.info("STARTED STEP with scenario: %s" % config_.OBST_COURSE)
             break
 
     # setup zmq poller
@@ -96,7 +98,7 @@ def main(logger, ):
     poller.register(path_socket, zmq.POLLIN)
 
     # init and instantiate to pybullet simulation
-    env = start_env(config_.OBST_COURSE)
+    env = start_env()
     p.setRealTimeSimulation(1)  # let it settle
     time.sleep(2.5)
 
@@ -106,7 +108,6 @@ def main(logger, ):
         p.setRealTimeSimulation(0)
 
     path_points: [Node] or None = None
-    # loop while ()
     while ex_mode != ExMode.STOP:
 
         socks = dict(poller.poll(0))
@@ -114,7 +115,8 @@ def main(logger, ):
         # poll control
         if ctrl_socket in socks and socks[ctrl_socket] == zmq.POLLIN:
             a_msg = ctrl_socket.recv()
-            if a_msg is None: continue
+            if a_msg is None:
+                continue
             (m_msg, config_) = pickle.loads(a_msg[len(default_config['PUB_PREFIX']):])
             if "SHUTDOWN" in m_msg:
                 ex_mode = ExMode.STOP
@@ -133,7 +135,7 @@ def main(logger, ):
                 env.delete()
                 path_points = None
 
-                env = start_env(config_.OBST_COURSE)
+                env = start_env()
                 p.setRealTimeSimulation(1)  # let it settle
                 time.sleep(2.5)
 
@@ -150,7 +152,7 @@ def main(logger, ):
                 ex_mode = ExMode.RUNNING
                 p.setRealTimeSimulation(1)
 
-            logger.info("received ctrl msg: %s" % m_msg)
+            logger.info(" > received ctrl msg: %s" % m_msg)
 
         if ex_mode == ExMode.RUNNING or ex_mode == ExMode.STEP:
             time_0 = time.perf_counter()
@@ -164,7 +166,7 @@ def main(logger, ):
                 a_msg = path_socket.recv()
                 n_path_points = pickle.loads(a_msg[len(default_config['PUB_PREFIX']):])
                 if path_points is None:
-                    logger.info("Received first path")
+                    logger.debug("Received first path")
                 path_points = n_path_points
 
                 path_points = [Node.from_list(point_) for point_ in path_points]
@@ -183,15 +185,15 @@ def main(logger, ):
             sens_socket.send(default_config['PUB_PREFIX'].encode() + pickle.dumps(img_data))
 
             # send stuff to GUI
-            state_socket_p.send(default_config['PUB_PREFIX'].encode() + env.export_to_sbGUI())
+            state_socket_p.send(default_config['PUB_PREFIX'].encode() + env.export_to_gui())
 
             # send position, heading, speed, planned path to sbPlanner
-            posh_socket.send(default_config['PUB_PREFIX'].encode() + env.export_to_sbPlanner())
+            posh_socket.send(default_config['PUB_PREFIX'].encode() + env.export_to_planner())
 
             loop_count += 1
             time_1 = time.perf_counter()
             if time_1 - time_0 > 2:
-                logger.info("++ took : %d sec", time_1 - time_0)
+                logger.info("ROB: took %d sec", time_1 - time_0)
 
         if ex_mode == ExMode.STEP:
             # end of step
@@ -204,8 +206,8 @@ def main(logger, ):
 
 if __name__ == "__main__":
     # setup logging
-    format = "%(name)s [%(loop_count)-4s] - %(levelname)-8s: %(message)s"
-    logging.basicConfig(format=format, level=logging.INFO, )  # , level=logging.INFO, datefmt="%H:%M:%S"
+    format_ = "%(name)s [%(loop_count)-4s] - %(levelname)-8s: %(message)s"
+    logging.basicConfig(format=format_, level=logging.INFO, )  # , level=logging.INFO, datefmt="%H:%M:%S"
     old_factory = logging.getLogRecordFactory()
 
 

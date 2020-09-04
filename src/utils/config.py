@@ -62,7 +62,7 @@ default_config = {
     'PATH_RES':             0.05,
     'PATH_RES_QUICK':       0.3,
 
-    'OBST_COURSE':          7,
+    'OBST_COURSE':          3,
     'CHOICES':              {'Clear': 0, 'Static Simple': 1, 'Static Cluttered': 2,
                              'Static C-Shape': 3, 'Dynamic Dodge-the-Bullet': 4,
                              'Dynamic Traffic-Lights': 5, 'Dynamic At-the-Mall': 6,

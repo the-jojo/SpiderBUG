@@ -16,7 +16,7 @@ from matplotlib.figure import Figure
 pyximport.install(setup_args={"include_dirs": numpy.get_include()}, language_level=3)
 
 from src.utils.config import Config, default_config
-from src.bot.ObstacleSegment import ObstacleSegment
+from src.nav.ObstacleSegment import ObstacleSegment
 from src.utils.modes import NavMode
 from src.utils.sbMath import reduce_path
 

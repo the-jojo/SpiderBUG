@@ -28,7 +28,7 @@ config = Config()
 config.trace_filter = GlobbingFilter(exclude=[])"""
 
 from src.geom.Node import Node
-from src.bot.ObstacleSegment import ObstacleSegment
+from src.nav.ObstacleSegment import ObstacleSegment
 import matplotlib.pyplot as plt
 
 

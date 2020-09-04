@@ -220,19 +220,20 @@ def main(exp_config_: ExpConfig, logger):
                              [{'key': "RES_HORIZONTAL", 'cur': 60, 'min': 60, 'max': 1021, 'step': 120}])
     exp_config_.set_property('PATH_FNAME', 0)  # start path file identifier"""
 
-    s_experiment = "control"
-    s_csv = "SPB"
+    s_experiment = "models"
+    s_csv = "MOD"
     exp_config_.set_property('CONF_VALUES',
-                             [{'key': "X", 'cur': 0, 'min': 0, 'max': 0.1, 'step': 1}])
+                             [{'key': "ROB_MODEL", 'cur': 0, 'min': 0, 'max': 2.1, 'step': 1}])
     exp_config_.set_property('PATH_FNAME', 0)  # start path file identifier
-    exp_config_.set_property('ITERATION', 0)  # current iteration
 
-    for scen in range(0, 7): #
-        exp_config_.set_property('OBST_COURSE', scen)  # scenario to run
-        # start experiment
+    for scen in range(1, 7): #
+        for iteration in range(0, 6):
+            exp_config_.set_property('ITERATION', iteration)  # current iteration
+            exp_config_.set_property('OBST_COURSE', scen)  # scenario to run
+            # start experiment
 
-        start_exp(exp_config_, logger, ctrl_socket, rob_socket, pla_socket, poller)
-        logger.info("DONE with scenario #" + str(scen) + ", iteration #" + str(0))
+            start_exp(exp_config_, logger, ctrl_socket, rob_socket, pla_socket, poller)
+            logger.info("DONE with scenario #" + str(scen) + ", iteration #" + str(iteration))
 
     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

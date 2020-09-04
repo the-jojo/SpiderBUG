@@ -4,6 +4,7 @@ import pybullet as p
 import numpy as np
 
 from src.bot.Robot import Robot
+from src.utils.DubinsPath import find_path
 
 
 class TurtleBot(Robot):
@@ -18,7 +19,22 @@ class TurtleBot(Robot):
     def update_cam(self):
         return super().update_cam(29)
 
-    def differential_drive(self, x, y, t, dt=0.1):
+    def drive_along(self, path_points):
+        p0 = path_points[0]
+        p1 = None if len(path_points) <= 1 else path_points[1]
+        path_configurations, t = find_path(self.pos, self.orn,
+                                           p0, p1,
+                                           self._config.TURN_RADIUS)
+        self.path_configurations_arr = np.array(path_configurations)
+
+        t = np.array(t)
+        x = self.path_configurations_arr[:, 0]  # desired x positions
+        y = self.path_configurations_arr[:, 1]  # desired y positions
+
+        left_vs, right_vs = self.differential_drive(x, y, t)
+        self.set_wheel_speeds(left_vs[0], right_vs[0])
+
+    def differential_drive(self, x, y, t):
         """Convert x-y path points to differential drive robot wheel speeds"""
         r = self.wheel_radius
         l = self.axle_length / 2.
@@ -68,10 +84,6 @@ class TurtleBot(Robot):
                                 targetVelocity=r_speed*self._config.ROB_SPEED,
                                 force=1000)
 
-    def stop(self):
-        p.setJointMotorControl2(self.p_id, 0, p.VELOCITY_CONTROL, targetVelocity=0, force=1000)
-        p.setJointMotorControl2(self.p_id, 1, p.VELOCITY_CONTROL, targetVelocity=0, force=1000)
-
-    def pause(self):
+    def drive_stop(self):
         p.setJointMotorControl2(self.p_id, 0, p.VELOCITY_CONTROL, targetVelocity=0, force=1000)
         p.setJointMotorControl2(self.p_id, 1, p.VELOCITY_CONTROL, targetVelocity=0, force=1000)

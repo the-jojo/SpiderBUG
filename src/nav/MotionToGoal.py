@@ -1,6 +1,6 @@
 import math
 
-from src.bot.ObstacleSegment import ObstacleSegment
+from src.nav.ObstacleSegment import ObstacleSegment
 from src.geom.Node import Node
 from src.nav.Navigation import DynamicWeb
 from src.utils.config import Config

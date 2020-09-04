@@ -2,7 +2,7 @@ import math
 
 import numpy as np
 
-from src.bot.ObstacleSegment import ObstacleSegment
+from src.nav.ObstacleSegment import ObstacleSegment
 from src.geom.Lines import LineSegment
 from src.geom.Node import Node
 from src.utils.DubinsPath import find_path_complete

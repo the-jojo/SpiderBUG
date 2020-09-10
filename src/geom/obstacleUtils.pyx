@@ -10,7 +10,6 @@ from src.geom.BoundedPlane cimport _get_plane_normal, _get_plane_constant, _get_
 from src.geom.Node cimport Node, _eq, _dist_3d, _dist_2d
 from src.geom.Lines cimport _get_shortest_line_btw_ray_and_line
 from src.geom.Node import Node
-from src.geom.BoundedPlane import setdebug
 
 cdef bint is_equal(double a, double b, double c, double tolerance=0.001):
     if math.isnan(a) or math.isnan(b) or math.isnan(c):

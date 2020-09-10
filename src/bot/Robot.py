@@ -5,7 +5,7 @@ import pybullet as p
 from pyquaternion import Quaternion
 
 from src.geom.Node import Node
-from src.utils.sbMath import angle_between, dist_2d_p, get_point_towards
+from src.utils.sbMath import angle_between
 
 
 class Robot:
@@ -91,7 +91,7 @@ class Robot:
         t = self._config.RES_VERTICAL / self._config.RES_HORIZONTAL
         self.projMat = p.computeProjectionMatrix(-1, 1, -t/2,
                                                  t/2, 0.12, 99)  # left, right, bottom, top
-
+        # these below aren't quite right
         """self.projMat = p.computeProjectionMatrix(-1, 1, - self._config.RES_VERTICAL / self._config.RES_HORIZONTAL,
                                                  self._config.RES_VERTICAL / self._config.RES_HORIZONTAL, 0.12, 99)  
         # left, right, bottom, top"""
@@ -115,7 +115,7 @@ class Robot:
     def get_orn_vector(self):
         (pos, orn) = p.getBasePositionAndOrientation(self.p_id)  # orn = [x,y,z,w]
         orn_q = Quaternion(orn[3], orn[0], orn[1], orn[2])
-        v = np.array([1.,0.,0.])
+        v = np.array([1., 0., 0.])
         v_ = orn_q.rotate(v)  # use x,y part to determine orientation angle
         v_[2] = 0
         return v_

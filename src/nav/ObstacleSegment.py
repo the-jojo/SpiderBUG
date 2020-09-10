@@ -1,8 +1,7 @@
-from copy import deepcopy
-
-import numpy as np
 import math
 import time
+
+import numpy as np
 
 from src.geom.Lines import Ray, LineSegment
 from src.geom.Node import Node
@@ -10,6 +9,7 @@ from src.geom.obstacleUtils import _get_intersect_with_path_3d
 
 
 class ObstacleSegment:
+    """"""
 
     def __init__(self, obst_id, sensed_points):
         self.id = obst_id

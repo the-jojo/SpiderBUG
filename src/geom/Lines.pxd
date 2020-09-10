@@ -1,5 +1,3 @@
-# cython: profile=True
-
 cimport numpy as cnp
 from src.geom.Node cimport Node
 

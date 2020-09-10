@@ -58,6 +58,10 @@ class TurtleBot(Robot):
         return dotphi2, dotphi1
 
     def get_rob_pos_from_speeds(self, t, dotphi2, dotphi1, dt=0.1):
+        """
+        Forward kinematics to get the future path from the planned wheel speeds
+        Not used anywhere but kept as a reference bc its just interesting
+        """
         N = len(t)  # number of samples
         r = self.wheel_radius
         L = self.axle_length / 2.
@@ -77,6 +81,11 @@ class TurtleBot(Robot):
             th[i + 1] = th[i] + (r * dt / (2.0 * L)) * (dotphi1[i] - dotphi2[i])
 
     def set_wheel_speeds(self, l_speed, r_speed):
+        """
+        Set the wheel speeds of the robot
+        :param l_speed: float left wheel speed
+        :param r_speed: float right wheel speed
+        """
         p.setJointMotorControl2(self.p_id, 0, p.VELOCITY_CONTROL,
                                 targetVelocity=l_speed*self._config.ROB_SPEED,
                                 force=1000)

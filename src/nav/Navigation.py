@@ -236,43 +236,43 @@ class DynamicWeb:
         # now we have edges to all immediately reachable nodes and updated them to 3d
         # loop all directly reachable and create edges from there
         while len(processed_nodes) > 0:
-            for dr_node in processed_nodes:
-                processed_nodes.remove(dr_node)
-                # dr_node = Node(dr_node)
-                # loop all nearby nodes
-                nodes = deepcopy(self.get_nodes_by_dist(dr_node))
-                for node in nodes:
-                    # dont create edges to newPos (we already have) nor themselves nor to blocked nodes
-                    if (not node == dr_node) and (not node == new_pos_3d) and \
-                            not DynamicWeb.__intersects__(obstacles, [node.as_node_2d()], dr_node, robot_speed,
-                                                     1.01*rob_radius):
-                        # find 3d location
-                        z = dr_node.z() + (dr_node.dist_2d(node) / robot_speed)
-                        # compare new z to old z
-                        if z < node.z():
-                            # found path to node that was quicker than previous best path
-                            # preserve other edges to node
-                            prev_edges_in = deepcopy(self.DG.in_edges(node))
+            dr_node = processed_nodes[0]
+            processed_nodes.remove(dr_node)
 
-                            # remove old node
-                            self.DG.remove_node(node)
-                            new_node = Node.from_list([node.x(), node.y(), z])
-                            # add new node and edge to node
-                            self.DG.add_node(new_node)
-                            self.DG.add_edge(dr_node, new_node)
-                            # add back in edges
-                            for e_in in prev_edges_in:
-                                self.DG.add_edge(e_in[0], new_node)
+            # loop all nearby nodes
+            nodes = deepcopy(self.get_nodes_by_dist(dr_node))
+            for node in nodes:
+                # dont create edges to newPos (we already have) nor themselves nor to blocked nodes
+                if (not node == dr_node) and (not node == new_pos_3d) and \
+                        not DynamicWeb.__intersects__(obstacles, [node.as_node_2d()], dr_node, robot_speed,
+                                                 1.01*rob_radius):
+                    # find 3d location
+                    z = dr_node.z() + (dr_node.dist_2d(node) / robot_speed)
+                    # compare new z to old z
+                    if z < node.z() or node.z() == 0:
+                        # found path to node that was quicker than previous best path OR the first path to the node
+                        # preserve other edges to node
+                        prev_edges_in = deepcopy(self.DG.in_edges(node))
 
-                            # add to processed_nodes
-                            processed_nodes.append(new_node)
+                        # remove old node
+                        self.DG.remove_node(node)
+                        new_node = Node.from_list([node.x(), node.y(), z])
+                        # add new node and edge to node
+                        self.DG.add_node(new_node)
+                        self.DG.add_edge(dr_node, new_node)
+                        # add back in edges
+                        for e_in in prev_edges_in:
+                            self.DG.add_edge(e_in[0], new_node)
 
-                            if self.goal_pos.dist_2d(node) < removal_dist:
-                                self.goal_pos = new_node
-                        else:
-                            # new path is not shorter
-                            # still create edge
-                            self.DG.add_edge(dr_node, node)
+                        # add to processed_nodes
+                        processed_nodes.append(new_node)
+
+                        if self.goal_pos.dist_2d(node) < removal_dist:
+                            self.goal_pos = new_node
+                    else:
+                        # new path is not shorter
+                        # still create edge
+                        self.DG.add_edge(dr_node, node)
         time_1 = time.perf_counter()
         if time_1 - time_0 > 2:
             print("Navigation interconnect(): took : %d sec" % (time_1 - time_0))

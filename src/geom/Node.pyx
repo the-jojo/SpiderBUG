@@ -1,40 +1,43 @@
-# cython: profile=True
-
 import math
 
 import numpy as np
 cimport numpy as cnp
 
-cdef double TOLERANCE = 0.1
-
 cdef cnp.ndarray _as_2d(cnp.ndarray[double, ndim=1] a):
+    """Returns a 1D ndarray with x and y elements from a and z as 0"""
     cdef cnp.ndarray[double, ndim=1] b = np.array([a[0], a[1], 0.])
     return b
 
 cdef cnp.ndarray _as_unit_vector(cnp.ndarray[double, ndim=1] a):
+    """normalises the given ndarray a to unit length"""
     cdef cnp.ndarray[double, ndim=1] b = a / np.linalg.norm(a)
     return b
 
 cdef double _dist_3d(cnp.ndarray[double, ndim=1] a,
                      cnp.ndarray[double, ndim=1] b):
+    """Returns the 3D distance between ndarrays a and b representing 2 3D points"""
     return math.sqrt((b[0] - a[0]) ** 2. + (b[1] - a[1]) ** 2. + (b[2] - a[2]) ** 2.)
 
 cdef double _dist_2d(cnp.ndarray[double, ndim=1] a,
                      cnp.ndarray[double, ndim=1] b):
+    """Returns the 2D distance between ndarrays a and b representing 2 2D points"""
     return math.sqrt((b[0] - a[0]) ** 2. + (b[1] - a[1]) ** 2.)
 
 
 cdef int _is_point_btw(cnp.ndarray[double, ndim=1] a,
                        cnp.ndarray[double, ndim=1] b,
                        cnp.ndarray[double, ndim=1] point):
+    """Checks if the given ndarray point lies between a and b with a tolerance of 0.1"""
     cdef double d_apb = _dist_3d(a, point) + _dist_3d(b, point)
     cdef double d_ab = _dist_3d(a, b)
-    return abs(d_ab - d_apb) < TOLERANCE
+    return abs(d_ab - d_apb) < 0.1
 
 cpdef bint _eq(cnp.ndarray[double, ndim=1] a, cnp.ndarray[double, ndim=1] b):
+    """checks if all elements of a and b are equal"""
     return a[0] is b[0] and a[1] is b[1] and a[2] is b[2]
 
 cpdef Node toN(t):
+    """converts a given value of type {Node, ndarray, tuple, list or memory-slice} to Node"""
     if type(t) is Node:
         return <Node> t
     if type(t) is cnp.ndarray:
@@ -51,29 +54,8 @@ cdef class Node:
     Allows hashing and equality.
     Allows conversion to 2d or 3d formats
     """
-    #cdef double x, y, z
-
     def __cinit__(self, double x=0., double y=0., double z=0.):
         self.data = np.array((<double>x, <double>y, <double>z))
-
-    """
-    # define properties in the normal Python way
-    @property
-    def x(self):
-        return self.pt.x
-
-    @x.setter
-    def x(self,val):
-        self.pt.x = val
-
-    @property
-    def y(self):
-        return self.pt.y
-
-    @y.setter
-    def y(self,val):
-        self.pt.y = val
-    """
 
     cpdef double x(self, double x=math.nan):
         if not math.isnan(x):
@@ -89,9 +71,6 @@ cdef class Node:
         if not math.isnan(z):
             self.data[2] = z
         return self.data[2]
-
-    '''cpdef S_Node get_data(self):
-        return self.data'''
 
     cpdef cnp.ndarray as_ndarray(self):
         return np.array([self.x(), self.y(), self.z()])
@@ -219,7 +198,7 @@ cdef class Node:
         return self.__hash__() == other.__hash__()
 
     def __getstate__(self):
-        return (self.x(), self.y(), self.z())
+        return self.x(), self.y(), self.z()
 
     def __setstate__(self, state):
         self.data[0], self.data[1], self.data[2] = state

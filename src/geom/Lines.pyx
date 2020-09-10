@@ -1,5 +1,3 @@
-# cython: profile=True
-
 import math
 import numpy as np
 cimport numpy as cnp
@@ -7,15 +5,12 @@ cimport numpy as cnp
 from src.geom.Node cimport Node, _is_point_btw, _dist_3d, _as_unit_vector
 from src.geom.Node import Node
 
-cdef double TOLERANCE = 0.1
-
-
 # +++ Line cdef functions
 
 cdef cnp.ndarray _get_closest_point_on_line_to_p_2d(cnp.ndarray[double, ndim=1] lseg_start,
                                                     cnp.ndarray[double, ndim=1] lseg_end,
-                                                    cnp.ndarray[double, ndim=1] point): # -> Node or None
-    """Get point on line closest to given point or None"""
+                                                    cnp.ndarray[double, ndim=1] point):
+    """Get point on line closest to given point or None if given point is past the ends of the line segment"""
     cdef double k = (((lseg_end[1] - lseg_start[1]) * (point[0] - lseg_start[0]) - (lseg_end[0] - lseg_start[0])
           * (point[1] - lseg_start[1])) / (math.pow(lseg_end[1] - lseg_start[1], 2)
           + math.pow(lseg_end[0] - lseg_start[0], 2)))
@@ -29,7 +24,12 @@ cdef cnp.ndarray _get_closest_point_on_line_to_p_2d(cnp.ndarray[double, ndim=1] 
 
 cdef double _get_distance_point_to_line(cnp.ndarray[double, ndim=1] lseg_start,
                                         cnp.ndarray[double, ndim=1] lseg_end,
-                                        cnp.ndarray[double, ndim=1] point): # -> float
+                                        cnp.ndarray[double, ndim=1] point):
+    """
+    Calls '_get_closest_point_on_line_to_p_2d()' and returns the 3D distance from the returned point to
+    the given point. If the function call returns None, the minimum distance between the ends of the 
+    line segment and the given point is returned 
+    """
     cdef cnp.ndarray[double, ndim=1] x = _get_closest_point_on_line_to_p_2d(lseg_start,
                                                                             lseg_end,
                                                                             point)
@@ -37,12 +37,13 @@ cdef double _get_distance_point_to_line(cnp.ndarray[double, ndim=1] lseg_start,
         # x is on line segment
         return _dist_3d(x, point)
     else:
+        # x is past the ends of the line segment
         return min(_dist_3d(lseg_start, point), _dist_3d(lseg_end, point))
 
 cdef cnp.ndarray _get_intersect_btw_lsegs_2d(cnp.ndarray[double, ndim=1] lseg_0_start,
                                              cnp.ndarray[double, ndim=1] lseg_0_end,
                                              cnp.ndarray[double, ndim=1] lseg_1_start,
-                                             cnp.ndarray[double, ndim=1] lseg_1_end): # -> Node or None
+                                             cnp.ndarray[double, ndim=1] lseg_1_end):
     """gets intersect of this and other line segment, None if they dont meet"""
     cdef double x1 = lseg_1_start[0]
     cdef double y1 = lseg_1_start[1]
@@ -71,7 +72,11 @@ cdef cnp.ndarray _get_intersect_btw_lsegs_2d(cnp.ndarray[double, ndim=1] lseg_0_
 
 cdef cnp.ndarray _get_point_lseg_intersect_or_end(cnp.ndarray[double, ndim=1] lseg_start,
                                                     cnp.ndarray[double, ndim=1] lseg_end,
-                                                    cnp.ndarray[double, ndim=1] point): # -> Node
+                                                    cnp.ndarray[double, ndim=1] point):
+    """
+    Calls '_get_closest_point_on_line_to_p_2d()' and returns the returned point or, if the function call 
+    returns None, the end of the line segment that is closest to the given point
+    """
     cdef cnp.ndarray[double, ndim=1] x = _get_closest_point_on_line_to_p_2d(lseg_start,
                                                                             lseg_end,
                                                                             point)
@@ -88,13 +93,13 @@ cdef cnp.ndarray _get_point_lseg_intersect_or_end(cnp.ndarray[double, ndim=1] ls
 cdef cnp.ndarray _get_shortest_line_btw_rays(cnp.ndarray[double, ndim=1] ray_0_start,
                                               cnp.ndarray[double, ndim=1] ray_0_grad,
                                               cnp.ndarray[double, ndim=1] ray_1_start,
-                                              cnp.ndarray[double, ndim=1] ray_1_grad): #  -> LineSegment
+                                              cnp.ndarray[double, ndim=1] ray_1_grad):
     """
-    Finds the points on the rays where they are closest.
+    Finds the points on the rays where the line segment and ray are closest.
     May be start points of ray or later.
-    If rays are parallel, returns the start points of rays.
+    If ray and line are parallel, return the start points of rays.
     :return: LineSegment containing 2 points.
-    First point on this ray, second point on given ray.
+    First point on this ray, second point on given line.
     """
 
     if ray_0_grad[2] == 0:
@@ -113,13 +118,6 @@ cdef cnp.ndarray _get_shortest_line_btw_rays(cnp.ndarray[double, ndim=1] ray_0_s
     cdef double r1 = -ray_0_grad[0] * ray_0_grad[0] - ray_0_grad[1] * ray_0_grad[1] - ray_0_grad[2] * ray_0_grad[2]
     cdef double s2 = ray_1_grad[0] * ray_1_grad[0] + ray_1_grad[1] * ray_1_grad[1] + ray_1_grad[2] * ray_1_grad[2]
     cdef double r2 = -ray_0_grad[0] * ray_1_grad[0] - ray_0_grad[1] * ray_1_grad[1] - ray_0_grad[2] * ray_1_grad[2]
-
-    if s1 == 0:
-        print("s1 is 0")
-        print(ray_0_grad)
-        print(ray_1_grad)
-        print(np.all(ray_0_grad == 0))
-        print(np.all(ray_1_grad == 0))
 
     cdef double s_scale = s2 / s1
     cdef double n1_scaled = n1 * s_scale
@@ -172,6 +170,7 @@ cdef bint _is_point_on_ray(cnp.ndarray[double, ndim=1] ray_start,
 # +++ General cdef functions
 
 cdef bint _is_equal(double a, double b, double c, double tolerance=0.001):
+    """checks if floats a, b, c are within tolerance of each other"""
     if math.isnan(a) or math.isnan(b) or math.isnan(c):
         return True
     return abs(a-b) < tolerance and abs(a-c) < tolerance
@@ -179,8 +178,7 @@ cdef bint _is_equal(double a, double b, double c, double tolerance=0.001):
 # classes
 
 cdef class LineSegment:
-    #cdef readonly Node start, end
-
+    """Line segment with start and end points"""
     def __cinit__(self, Node start, Node end):
         self.start = start
         self.end = end
@@ -228,7 +226,7 @@ cdef class LineSegment:
 
 
 cdef class Ray:
-    #cdef readonly Node start, gradient
+    """Ray with start point and 3D gradient"""
 
     def __cinit__(self, Node start, Node gradient):
         self.start = start

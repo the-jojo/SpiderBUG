@@ -1,13 +1,14 @@
 import math
+
 import dubins
 
 from src.geom.Node import Node
 from src.utils.config import default_config
 
 
-def find_path(pos_0: Node, heading_0: float, pos_1: Node, pos_2: Node or None, turn_radius: float, step_size=default_config['PATH_RES'],
-              resolution=math.pi / 64):
-    """Finds the shortest dubin's path that passes through the first 2 path points"""
+def find_path(pos_0: Node, heading_0: float, pos_1: Node, pos_2: Node or None, turn_radius: float,
+              step_size=default_config['PATH_RES'], resolution=math.pi / 64):
+    """Finds the shortest dubins path that passes through the first 2 path points"""
     config_0 = (*pos_0.as_list_2d(), heading_0)
     pos_2 = pos_2.as_list_2d() if pos_2 is not None else None
     path_0, path_1 = dubins.shortest_paths_2(config_0, pos_1.as_list_2d(), pos_2, turn_radius, resolution)
@@ -20,7 +21,8 @@ def find_path(pos_0: Node, heading_0: float, pos_1: Node, pos_2: Node or None, t
     return points, t
 
 
-def find_path_complete(pos_0: Node, heading_0: float, path_points: [Node], turn_radius: float, step_size=default_config['PATH_RES']): # turn_radius = 0.9
+def find_path_complete(pos_0: Node, heading_0: float, path_points: [Node], turn_radius: float,
+                       step_size=default_config['PATH_RES']):
     assert len(path_points) > 0
     pos_1 = path_points[0]
     pos_2 = path_points[1] if len(path_points) > 1 else None

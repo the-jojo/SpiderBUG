@@ -16,8 +16,3 @@ class ExMode(Enum):  # execution mode of runtime module
     PAUSED = 1
     STEP = 2
     STOP = 3
-
-
-class IntersectType(Enum):
-    HARD = 0
-    SOFT = 1

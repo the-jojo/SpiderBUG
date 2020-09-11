@@ -1,4 +1,3 @@
-#import distutils.core
 from setuptools import Extension, setup
 from Cython.Build import cythonize
 import numpy
@@ -18,5 +17,5 @@ extensions = [
 setup(
     name="SpiderBUG",
     ext_modules=cythonize(extensions), install_requires=['dill', 'matplotlib', 'numpy', 'pyzmq', 'networkx', 'pybullet',
-                                                         'pyquaternion', 'dubins']
+                                                         'pyquaternion', 'dubins', 'Cython']
 )

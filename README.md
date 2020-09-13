@@ -34,13 +34,19 @@ Then run each of the commands below in a new shell window/tab:
 > python src/sbGUI.py
 ````
 
+![Example Run](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/overview.gif "Usage of Simulation Environment")
 *Example run of app (sped up 150%)*
-
-![Example](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/overview.gif "Usage of Simulation Environment")
 
 ### Manual
 
-Once `READY` is printed by each module, use the GUI interface to start a scenario. Select ...
+Once `READY` is printed by each module, use the GUI interface to start a scenario. Select "Setup Simulation", then select the robot model and scenario from the dropdown lists. 
+
+Click "Start" to start the simulation. "Pause" can be used to pause all modules and step to run one iteration of each module, including the PyBullet simulation.
+
+Click "View Robot Live State" to view a graphical representation of the planner's internal state. The image below explains the available elements of this interface page.
+
+![Live View]( "Live View Page Explanation")
+*Live view page explanation*
 
 ## Documentation
 

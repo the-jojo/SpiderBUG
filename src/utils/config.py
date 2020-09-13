@@ -62,14 +62,14 @@ default_config = {
     'PATH_RES':             0.05,
     'PATH_RES_QUICK':       0.3,
 
-    'OBST_COURSE':          3,
-    'CHOICES':              {'Clear': 0, 'Static Simple': 1, 'Static Cluttered': 2,
+    'OBST_COURSE':          1,
+    'SCENARIOS':            {'Clear': 0, 'Static Simple': 1, 'Static Cluttered': 2,
                              'Static C-Shape': 3, 'Dynamic Dodge-the-Bullet': 4,
                              'Dynamic Traffic-Lights': 5, 'Dynamic At-the-Mall': 6,
-                             'Obst Experiment': 7},
-    'O_M':                  3,
+                             'Obstacle Experiment': 7},
+    'ROBOTS':               {'TurtleBot 2': 0, 'SphereBot Deterministic': 1, 'SphereBot Random': 2,},
+    'OBSTACLE_MOVEMENT':    3,  # only used in scenario 7
 
-    'HEADLESS':             False,
     'P_START':              [0., 0., 0.],
     'O_START':              [1., 0., 0.],
     'P_GOAL':               [8., 0., 0.],
@@ -188,7 +188,11 @@ class Config(object):
 
     @property
     def SCEN_CHOICES(self):
-        return self.get_property('CHOICES')
+        return self.get_property('SCENARIOS')
+
+    @property
+    def ROB_CHOICES(self):
+        return self.get_property('ROBOTS')
 
     @property
     def HEADLESS(self):
@@ -231,8 +235,8 @@ class Config(object):
         return self.get_property('O_START')
 
     @property
-    def O_M(self):
-        return self.get_property('O_M')
+    def OBSTACLE_MOVEMENT(self):
+        return self.get_property('OBSTACLE_MOVEMENT')
 
     @property
     def ROB_MODEL(self):

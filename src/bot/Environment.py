@@ -94,6 +94,11 @@ class Scenario:
             p.connect(p.DIRECT)
         else:
             p.connect(p.GUI)
+        p.configureDebugVisualizer(p.COV_ENABLE_GUI, True)
+        p.configureDebugVisualizer(p.COV_ENABLE_DEPTH_BUFFER_PREVIEW, True)
+        p.configureDebugVisualizer(p.COV_ENABLE_RGB_BUFFER_PREVIEW, True)
+        p.configureDebugVisualizer(p.COV_ENABLE_SEGMENTATION_MARK_PREVIEW, False)
+
         p.resetSimulation()
         p.setGravity(0, 0, -10.)
 
@@ -330,23 +335,23 @@ def scen_7(config_):
     o_v_change = None
     o_v_const = True
     o_v_rand = False
-    if config_.O_M == 0:
+    if config_.OBSTACLE_MOVEMENT == 0:
         # static
         pass
-    elif config_.O_M == 1:
+    elif config_.OBSTACLE_MOVEMENT == 1:
         # fixed speed
         o_v_start = Node.from_list([-2.5, -0.5, 0.0]).as_unit_vector() * 0.1
-    elif config_.O_M == 2:
+    elif config_.OBSTACLE_MOVEMENT == 2:
         # fixed speed, changing velocity direction
         o_v_start = Node.from_list([.25, -.5, 0]).as_unit_vector() * 0.1
         o_v_change = Node.from_list([-0.25, 0.25, 0]).as_unit_vector() * (0.1/9.)
-    elif config_.O_M == 3:
+    elif config_.OBSTACLE_MOVEMENT == 3:
         # accelerating
         o_v_start = Node.from_list([-2.5, -0.5, 0]).as_unit_vector() * 0.1
         o_v_change = Node.from_list([-2.5, -0.5, 0]).as_unit_vector() * 0.008
         o_v_const = False
         pass
-    elif config_.O_M == 4:
+    elif config_.OBSTACLE_MOVEMENT == 4:
         # decelerating
         o_v_start = Node.from_list([-2.5, -0.5, 0]).as_unit_vector() * 0.15
         o_v_change = Node.from_list([-2.5, -0.5, 0]).as_unit_vector() * -0.005

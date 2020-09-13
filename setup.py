@@ -9,9 +9,9 @@ _directive_defaults['binding'] = True
 
 extensions = [
 
-    Extension("ObstacleSegment", ["src\\geom\\*"],
+    Extension("geometry_code", ["src\\geom\\*.pyx"],
               include_dirs=[numpy.get_include()],
-              define_macros=[('CYTHON_TRACE', '1')]),
+              define_macros=[]),
 ]
 
 setup(

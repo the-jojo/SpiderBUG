@@ -1,4 +1,6 @@
 import logging
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk
 
@@ -12,6 +14,8 @@ import zmq
 from matplotlib import style
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 pyximport.install(setup_args={"include_dirs": numpy.get_include()}, language_level=3)
 
@@ -225,7 +229,7 @@ class StartPage(tk.Frame):
         label = tk.Label(self, text="Main Menu", font=LARGE_FONT)
         label.pack(pady=10, padx=10)
 
-        but_indi = ttk.Button(self, text="Run 1 Simulation",
+        but_indi = ttk.Button(self, text="Setup Simulation",
                               command=lambda: controller.show_frame(IndividualPage))
         but_indi.pack(pady=10, padx=10)
 
@@ -248,13 +252,13 @@ class LiveViewPage(tk.Frame):
         button_frame.pack(side="top", fill=None, expand=False, pady=10)
         plot_frame.pack(side="bottom", fill="both", expand=True)
 
-        label = tk.Label(top_frame, text="View Robot's Live State", font=LARGE_FONT)
+        label = tk.Label(top_frame, text="Robot's Live State", font=LARGE_FONT)
         label.pack(pady=10, padx=10)
 
         button1 = ttk.Button(top_frame, text="Main Menu",
                              command=lambda: controller.show_frame(StartPage))
         button1.pack(side="left")
-        button2 = ttk.Button(top_frame, text="Run 1 Simulation",
+        button2 = ttk.Button(top_frame, text="Setup Simulation",
                              command=lambda: controller.show_frame(IndividualPage))
         button2.pack(side="right")
 
@@ -292,30 +296,38 @@ class IndividualPage(tk.Frame):
         button_frame.pack(side="top", fill=None, expand=False, pady=10)
         plot_frame.pack(side="bottom", fill="both", expand=True)
 
-        label = tk.Label(top_frame, text="Run 1 Simulation", font=LARGE_FONT)
+        label = tk.Label(top_frame, text="Setup Simulation", font=LARGE_FONT)
         label.pack(pady=10, padx=10)
 
         button1 = ttk.Button(top_frame, text="Main Menu",
                              command=lambda: controller.show_frame(StartPage))
         button1.pack()
 
-        # Create a Tkinter variable
-        tkvar = tk.StringVar(parent)
-        # Dictionary with options
-        tkvar.set(next(key for key, value in config_.SCEN_CHOICES.items() if value == config_.OBST_COURSE))
-
-        popup_menu = tk.OptionMenu(button_frame, tkvar, *config_.SCEN_CHOICES)
-        lab_setup = tk.Label(button_frame, text="Choose a setup")
-        lab_setup.pack()
-        popup_menu.pack()
-
-        # on change dropdown value
-        def change_dropdown(*args):
+        # robot dropdown
+        tk_var_robot = tk.StringVar(parent)
+        tk_var_robot.set(next(key for key, value in config_.ROB_CHOICES.items() if value == config_.ROB_MODEL))
+        popup_menu_robot = tk.OptionMenu(button_frame, tk_var_robot, *config_.ROB_CHOICES)
+        lab_robot = tk.Label(button_frame, text="Choose a Robot")
+        lab_robot.pack()
+        popup_menu_robot.pack()
+        def change_dropdown_2(*args):
             global config_
-            config_.set_property('OBST_COURSE', config_.SCEN_CHOICES[tkvar.get()])
+            config_.set_property('ROB_MODEL', config_.ROB_CHOICES[tk_var_robot.get()])
+        tk_var_robot.trace('w', change_dropdown_2)
 
-        # link function to change dropdown
-        tkvar.trace('w', change_dropdown)
+        # scenario dropdown
+        tk_var_scenario = tk.StringVar(parent)
+        tk_var_scenario.set(next(key for key, value in config_.SCEN_CHOICES.items() if value == config_.OBST_COURSE))
+        popup_menu_scenario = tk.OptionMenu(button_frame, tk_var_scenario, *config_.SCEN_CHOICES)
+        lab_setup = tk.Label(button_frame, text="Choose a Scenario")
+        lab_setup.pack()
+        popup_menu_scenario.pack()
+
+        def change_dropdown_1(*args):
+            global config_
+            config_.set_property('OBST_COURSE', config_.SCEN_CHOICES[tk_var_scenario.get()])
+
+        tk_var_scenario.trace('w', change_dropdown_1)
 
         but_start = ttk.Button(button_frame, text="Start",
                                command=lambda: send_ctr_cmd(ctrl_socket, "START", logger, config_))

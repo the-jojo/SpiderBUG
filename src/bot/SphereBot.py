@@ -17,6 +17,8 @@ class SphereBot(Robot):
         super().render()
 
     def drive_along(self, path_points):
+        self.path_configurations_arr = np.array([[self.pos.x(), self.pos.y()]] + [[point.x(), point.y()] for point in path_points])
+        #self.path_configurations_arr = np.insert(self.path_configurations_arr, 0, [self.pos.x(), self.pos.y()])
         self.holonomic_drive(path_points[0].x(), path_points[0].y())
 
     def holonomic_drive(self, target_x, target_y):

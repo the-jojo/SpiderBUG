@@ -1,11 +1,14 @@
 import logging
 import sys
+import os
 import time
 
 import dill as pickle
 import numpy as np
 import pyximport
 import zmq
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.utils.config import Config, default_config
 from src.utils.modes import ExMode

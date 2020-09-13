@@ -1,10 +1,13 @@
 import logging
 import sys
+import os
 from copy import deepcopy
 
 import numpy
 import pyximport
 import zmq
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 pyximport.install(setup_args={"include_dirs": numpy.get_include()})
 

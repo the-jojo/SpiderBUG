@@ -7,7 +7,7 @@ The problem addressed is that of an autonomous robotic agent navigating an unkno
 
 ## This Project
 
-This project code accompanies a dissertation presented in part fulfilment of the requirements of the Master of Science Computing Science of the University of Glasgow
+**This project code accompanies a dissertation presented in part fulfilment of the requirements of the Master of Science Computing Science of the University of Glasgow**
 
 The SpiderBUG path-planner is implemented in Python using the Pybullet physics library and tested against a range of static and dynamic environments.
 
@@ -19,7 +19,28 @@ All work presented in this repository is available under the MIT licence.
 
 ## Quickstart Guide
 
-To run ...
+To run the simulation environment, first make sure all the required python packages are installed:
+
+``` bash
+> python setup.py install
+```
+
+Then run each of the commands below in a new shell window/tab:
+
+````bash
+> python src/sbPlanner.py
+> python src/sbRobot.py
+> python src/sbPerception.py
+> python src/sbGUI.py
+````
+
+*Example run of app (sped up 150%)*
+
+![Example]https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/overview.gif "Usage of Simulation Environment")
+
+### Manual
+
+Once `READY` is printed by each module, use the GUI interface to start a scenario. Select ...
 
 ## Documentation
 

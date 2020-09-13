@@ -36,7 +36,7 @@ Then run each of the commands below in a new shell window/tab:
 
 *Example run of app (sped up 150%)*
 
-![Example]https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/overview.gif "Usage of Simulation Environment")
+![Example](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/overview.gif "Usage of Simulation Environment")
 
 ### Manual
 

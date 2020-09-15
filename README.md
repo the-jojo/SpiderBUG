@@ -27,12 +27,12 @@ To run the simulation environment, first make sure all the required python packa
 
 Then run each of the commands below in a new shell window/tab:
 
-````bash
+``` bash
 > python src/sbPlanner.py
 > python src/sbRobot.py
 > python src/sbPerception.py
 > python src/sbGUI.py
-````
+```
 
 ![Example Run](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/overview.gif "Usage of Simulation Environment")
 
@@ -67,24 +67,13 @@ Directories:
  - `md_files`
  - `src`
  
- .
-+-- _config.yml
-+-- _drafts
-|   +-- begin-with-the-crazy-ideas.textile
-|   +-- on-simplicity-in-technology.markdown
-+-- _includes
-|   +-- footer.html
-|   +-- header.html
-+-- _layouts
-|   +-- default.html
-|   +-- post.html
-+-- _posts
-|   +-- 2007-10-29-why-every-programmer-should-play-nethack.textile
-|   +-- 2009-04-26-barcamp-boston-4-roundup.textile
-+-- _data
-|   +-- members.yml
-+-- _site
-+-- index.html
+``` markdown
+├── Jupyter  # experiment data and jupyter notebook to explore data
+|   ├── exp_data
+|   ├── pics
+├── md_files # images embedded in this readme
+├── src      # python source code
+```
 
 ## SpiderBUG run on all Scenarios
 

@@ -3,11 +3,11 @@ TURTLEBOT_RADIUS = 0.176
 
 # loaded config
 default_config = {
-    'PLANE_URDF':           ".\\data\\plane.urdf",
-    'BLOCK_URDF':           ".\\data\\boston_box.urdf",
-    'BLOCK_DYN_URDF':       ".\\data\\boston_box_fl.urdf",
-    'TURTLEBOT_URDF':       ".\\data\\turtlebot.urdf",
-    'SPHERO_URDF':          ".\\data\\sphero.urdf",
+    'PLANE_URDF':           ".\\data\\py_data\\plane.urdf",
+    'BLOCK_URDF':           ".\\data\\py_data\\boston_box.urdf",
+    'BLOCK_DYN_URDF':       ".\\data\\py_data\\boston_box_fl.urdf",
+    'TURTLEBOT_URDF':       ".\\data\\py_data\\turtlebot.urdf",
+    'SPHERO_URDF':          ".\\data\\py_data\\sphero.urdf",
 
     'PORT_GUI_2_ALL':       17555,
     'PORT_SENSE_2_PLAN':    17556,

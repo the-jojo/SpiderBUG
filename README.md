@@ -62,7 +62,7 @@ The robot can be either a Turtebot 2 model or a Spherebot and the PyBullet OpenG
 
 ## Documentation
 
-Directories:
+File Structure:
  
 ``` markdown
 ├── data  # experiment data and jupyter notebook to explore data
@@ -78,6 +78,7 @@ Directories:
 |   |               ├── py_objs     # folder containing python objects of the executed path and update intervals 
 |   |               └── TOL_x.csv   # csv of the parameter values tested, corresponding python object files and final state
 |   ├── pics        # pictures used in the thesis
+|   ├── py_data     # pybullet data such as urdf files
 |   └── sbAnalysis.ipynb  # Juypter Notebook used for data exploration 
 |                           and to generate the graphs in the thesis
 ├── md_files # images embedded in this readme
@@ -95,6 +96,8 @@ Directories:
 ├── README.md # this readme file 
 └── setup.py  # setup python file includes pip package requirements
 ```
+
+In-depth description of the source code can be found in the documentation of each file. 
 
 ## SpiderBUG run on all Scenarios
 

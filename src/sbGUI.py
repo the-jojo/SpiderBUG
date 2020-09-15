@@ -187,7 +187,7 @@ class GuiApp(tk.Tk):
         self.ctrl_socket = ctrl_socket
         self.logger = logger
 
-        tk.Tk.iconbitmap(self, default="data\\spider.ico")
+        tk.Tk.iconbitmap(self, default="data\\py_data\\spider.ico")
         tk.Tk.wm_title(self, "GUI Module")
 
         self.geometry("500x900-0+5")  # Width x Height + x_pos + y_pos

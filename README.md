@@ -35,27 +35,35 @@ Then run each of the commands below in a new shell window/tab:
 ````
 
 ![Example Run](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/overview.gif "Usage of Simulation Environment")
+
 *Example run of app (sped up 150%)*
 
 ### Manual
 
-Once `READY` is printed by each module, use the GUI interface to start a scenario. Select "Setup Simulation", then select the robot model and scenario from the dropdown lists. The image below explains the interface options.
+Once `READY` is printed by each module to their console, use the GUI interface to start a scenario. Select "Setup Simulation", then select the robot model and scenario from the dropdown lists. The image below explains the interface options.
 
 ![Live View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/setup_page.PNG "Setup Page Explanation")
+
 *Setup interface page explanation*
 
-Click "Start" to start the simulation. "Pause" can be used to pause all modules and step to run one iteration of each module, including the PyBullet simulation.
+Click "Start" to start the simulation. "Pause" can be used to pause all modules and "Step" to run one iteration of each module, including the PyBullet simulation.
 
-Click "View Robot Live State" to view a graphical representation of the planner's internal state. The image below explains the available elements of this interface page.
+Click "View Robot Live State" to view a graphical representation of the planner's internal state. The image below explains the available elements of this interface page. Please note that elements of the 3D plot of the dynamic web and the obstacle may overlap when they should be underlapping, thus making it hard to interpret. 
 
 ![Live View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/live_view.PNG "Live View Page Explanation")
+
 *Live view interface page explanation*
 
 The robot can be either a Turtebot 2 model or a Spherebot and the PyBullet OpenGL simulation environment is depicted and explained in the image below.
 
-![Simulation View]( "Pybullet Simulation Explanation")
+![Simulation View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/pybullet.PNG "Pybullet Simulation Explanation")
+
 *Pybullet Simulation explanation*
 
 ## Documentation
 
 Code ...
+
+## SpiderBUG run on all Scenarios
+
+...

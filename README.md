@@ -63,12 +63,9 @@ The robot can be either a Turtebot 2 model or a Spherebot and the PyBullet OpenG
 ## Documentation
 
 Directories:
- - `Jupyter`    - 
- - `md_files`
- - `src`
  
 ``` markdown
-├── Jupyter  # experiment data and jupyter notebook to explore data
+├── data  # experiment data and jupyter notebook to explore data
 |   ├── exp_data
 |   ├── pics
 ├── md_files # images embedded in this readme

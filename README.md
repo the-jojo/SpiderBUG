@@ -101,4 +101,26 @@ In-depth description of the source code can be found in the documentation of eac
 
 ## SpiderBUG run on all Scenarios
 
-...
+![Scenario 1](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_1.gif "Scenario 1")
+
+*Scenario 1*
+
+![Scenario 2](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_2.gif "Scenario 2")
+
+*Scenario 2*
+
+![Scenario 3](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_3.gif "Scenario 3")
+
+*Scenario 3*
+
+![Scenario 4](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_4.gif "Scenario 4")
+
+*Scenario 4*
+
+![Scenario 5](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_5.gif "Scenario 5")
+
+*Scenario 5*
+
+![Scenario 6](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_6.gif "Scenario 6")
+
+*Scenario 6*

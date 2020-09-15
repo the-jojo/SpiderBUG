@@ -67,24 +67,33 @@ Directories:
 ``` markdown
 ├── data  # experiment data and jupyter notebook to explore data
 |   ├── exp_data    # raw experiment data
-|       ├── control     # control paths as seen in figure 4.2; TurtleBot model run once on all scenarios
-|       ├── models      # data for section 4.3 Applicability to other Vehicular Movement Models
-|       ├── obstacles   # data for section 4.4 Applicability to other Dynamic Environments
-|       ├── resolutions # data for section 4.1 Algorithm Hyper-parameters - h_tolerance, d_tolerance
-|       └── tolerances  # data for section 4.1 Algorithm Hyper-parameters - h_resolution
-|           |   ... each of the above folders contains subfolders similar to the structure below ...
-|           └── S_x       # 1 folder per scenario
-|               └── i_x     # 1 folder per iteration
-|                   ├── py_objs # folder containing python objects of the executed path and update intervals 
-|                   └── TOL_x.csv # csv of the parameter values tested, corresponding python object files and final state
+|   |   ├── control     # control paths as seen in figure 4.2; TurtleBot model run once on all scenarios
+|   |   ├── models      # data for section 4.3 Applicability to other Vehicular Movement Models
+|   |   ├── obstacles   # data for section 4.4 Applicability to other Dynamic Environments
+|   |   ├── resolutions # data for section 4.1 Algorithm Hyper-parameters - h_tolerance, d_tolerance
+|   |   └── tolerances  # data for section 4.1 Algorithm Hyper-parameters - h_resolution
+|   |       |   ... each of the above folders contains subfolders similar to the structure below ...
+|   |       └── S_x       # 1 folder per scenario
+|   |           └── i_x     # 1 folder per iteration
+|   |               ├── py_objs     # folder containing python objects of the executed path and update intervals 
+|   |               └── TOL_x.csv   # csv of the parameter values tested, corresponding python object files and final state
 |   ├── pics        # pictures used in the thesis
-|   └── sbAnalysis  # Juypter Notebook used for data exploration 
-|                     and to generate the graphs in the thesis
+|   └── sbAnalysis.ipynb  # Juypter Notebook used for data exploration 
+|                           and to generate the graphs in the thesis
 ├── md_files # images embedded in this readme
 ├── src      # python source code
-|    ├── 
+|    ├── bot                      # code relating to the robot in the simulation and the setup of the scenarios
+|    ├── geom                     # code relating to geometrical operations (SpiderBUG's MTG mode)
+|    ├── nav                      # code used by the sbPlanner for both the MTG and BF modes
+|    ├── utils                    # configuration files, utility functions and Dubins path code
+|    ├── intersection_profiler.py # code used to profile the obstacleSegment.get_intersect_with_path_3d() function for section 3.3.3 of the thesis
+|    ├── sbExp.py                 # code used to collect the raw data for all the experiments
+|    ├── sbGUI.py                 # GUI module
+|    ├── sbPerception.py          # Perception module
+|    ├── sbPlanner.py             # Planner module
+|    └── sbRobot.py               # robot module
 ├── README.md # this readme file 
-└── setup.py # setup python file includes pip package requirements
+└── setup.py  # setup python file includes pip package requirements
 ```
 
 ## SpiderBUG run on all Scenarios

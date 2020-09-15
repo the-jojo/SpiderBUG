@@ -66,10 +66,25 @@ Directories:
  
 ``` markdown
 ├── data  # experiment data and jupyter notebook to explore data
-|   ├── exp_data
-|   ├── pics
+|   ├── exp_data    # raw experiment data
+|       ├── control     # control paths as seen in figure 4.2; TurtleBot model run once on all scenarios
+|       ├── models      # data for section 4.3 Applicability to other Vehicular Movement Models
+|       ├── obstacles   # data for section 4.4 Applicability to other Dynamic Environments
+|       ├── resolutions # data for section 4.1 Algorithm Hyper-parameters - h_tolerance, d_tolerance
+|       └── tolerances  # data for section 4.1 Algorithm Hyper-parameters - h_resolution
+|           |   ... each of the above folders contains subfolders similar to the structure below ...
+|           └── S_x       # 1 folder per scenario
+|               └── i_x     # 1 folder per iteration
+|                   ├── py_objs # folder containing python objects of the executed path and update intervals 
+|                   └── TOL_x.csv # csv of the parameter values tested, corresponding python object files and final state
+|   ├── pics        # pictures used in the thesis
+|   └── sbAnalysis  # Juypter Notebook used for data exploration 
+|                     and to generate the graphs in the thesis
 ├── md_files # images embedded in this readme
 ├── src      # python source code
+|    ├── 
+├── README.md # this readme file 
+└── setup.py # setup python file includes pip package requirements
 ```
 
 ## SpiderBUG run on all Scenarios

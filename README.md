@@ -39,14 +39,22 @@ Then run each of the commands below in a new shell window/tab:
 
 ### Manual
 
-Once `READY` is printed by each module, use the GUI interface to start a scenario. Select "Setup Simulation", then select the robot model and scenario from the dropdown lists. 
+Once `READY` is printed by each module, use the GUI interface to start a scenario. Select "Setup Simulation", then select the robot model and scenario from the dropdown lists. The image below explains the interface options.
+
+![Live View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/setup_page.png "Setup Page Explanation")
+*Setup interface page explanation*
 
 Click "Start" to start the simulation. "Pause" can be used to pause all modules and step to run one iteration of each module, including the PyBullet simulation.
 
 Click "View Robot Live State" to view a graphical representation of the planner's internal state. The image below explains the available elements of this interface page.
 
-![Live View]( "Live View Page Explanation")
-*Live view page explanation*
+![Live View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/live_view.png "Live View Page Explanation")
+*Live view interface page explanation*
+
+The robot can be either a Turtebot 2 model or a Spherebot and the PyBullet OpenGL simulation environment is depicted and explained in the image below.
+
+![Simulation View]( "Pybullet Simulation Explanation")
+*Pybullet Simulation explanation*
 
 ## Documentation
 

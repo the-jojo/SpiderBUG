@@ -15,6 +15,10 @@ from matplotlib import style
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 
+import signal
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow ctrl + c quitting
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 pyximport.install(setup_args={"include_dirs": numpy.get_include()}, language_level=3)
@@ -50,6 +54,21 @@ r_state = -1
 n_rob_pos = None
 mode = NavMode.MTG
 a2_angle = 0
+
+zmq_context, ctrl_socket, state_socket_o, state_socket_p, state_socket_n = None, None, None, None, None
+
+
+def close_and_quit():
+    global zmq_context, ctrl_socket, state_socket_o, state_socket_p, state_socket_n
+    print("QUITTING...")
+    try:
+        ctrl_socket.close()
+        state_socket_o.close()
+        state_socket_p.close()
+        state_socket_n.close()
+        zmq_context.term()
+    except:
+        pass
 
 
 def send_ctr_cmd(socket, command, logger, arg=None):
@@ -353,6 +372,7 @@ class IndividualPage(tk.Frame):
 
 
 def main(logger, is_main=0):
+    global zmq_context, ctrl_socket, state_socket_o, state_socket_p, state_socket_n
     """
     port_ctrl=PORT_GUI_2_ALL,
     port_state_o=PORT_SENS_2_GUI,
@@ -411,4 +431,8 @@ if __name__ == "__main__":
 
     logging.setLogRecordFactory(record_factory)
 
-    main(logging.getLogger("sbGUI"), 1)
+    try:
+        main(logging.getLogger("sbGUI"), 1)
+    finally:
+        # clean up
+        close_and_quit()

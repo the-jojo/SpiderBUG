@@ -7,6 +7,9 @@ import dill as pickle
 import numpy as np
 import pyximport
 import zmq
+import signal
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow ctrl + c quitting
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -25,10 +28,13 @@ if not sys.warnoptions:
     import warnings
     warnings.simplefilter("error")
 
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
+
 nav_mode = NavMode.MTG
 loop_count = 0
 config_ = Config()
 up_path = []
+zmq_context, ctrl_socket, path_socket, obst_socket, posh_socket, state_socket = None, None, None, None, None, None
 
 
 def plan(cur_pos_: Node, cur_heading_: float, goal_pos_: Node, new_obstacles_segments_: [ObstacleSegment],
@@ -99,6 +105,20 @@ def plan(cur_pos_: Node, cur_heading_: float, goal_pos_: Node, new_obstacles_seg
     return path_
 
 
+def close_and_quit():
+    global zmq_context, ctrl_socket, path_socket, obst_socket, posh_socket, state_socket
+    print("QUITTING...")
+    try:
+        ctrl_socket.close()
+        path_socket.close()
+        obst_socket.close()
+        posh_socket.close()
+        state_socket.close()
+        zmq_context.term()
+    except:
+        pass
+
+
 def main(logger):
     """
     port_ctrl=PORT_GUI_2_ALL,
@@ -107,7 +127,8 @@ def main(logger):
     port_posh=PORT_ROB_2_PLAN,
     port_state=PORT_PLAN_2_GUI
     """
-    global config_, nav_mode, loop_count, up_path
+    global config_, nav_mode, loop_count, up_path, \
+        zmq_context, ctrl_socket, path_socket, obst_socket, posh_socket, state_socket
 
     zmq_context = zmq.Context.instance()
 
@@ -146,8 +167,14 @@ def main(logger):
 
     # wait for start
     while ex_mode == ExMode.PAUSED:
-        a_msg = ctrl_socket.recv()
-        (m_msg, config_) = pickle.loads(a_msg[len(default_config['PUB_PREFIX']):])
+        try:
+            a_msg = ctrl_socket.recv()
+            (m_msg, config_) = pickle.loads(a_msg[len(default_config['PUB_PREFIX']):])
+        except:
+            # clean up
+            close_and_quit()
+            return
+
         if "START" in m_msg or "RESTART" in m_msg:
             ex_mode = ExMode.RUNNING
             logger.info(" > STARTED")
@@ -289,6 +316,8 @@ def main(logger):
         # sleep and loop
         time.sleep(0.01)
 
+    close_and_quit()
+
 
 if __name__ == "__main__":
     # setup logging
@@ -302,4 +331,8 @@ if __name__ == "__main__":
         return record
     logging.setLogRecordFactory(record_factory)
 
-    main(logging.getLogger("sbPlanner"))
+    try:
+        main(logging.getLogger("sbPlanner"))
+    finally:
+        # clean up
+        close_and_quit()

@@ -6,6 +6,9 @@ from copy import deepcopy
 import numpy
 import pyximport
 import zmq
+import signal
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow ctrl + c quitting
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -21,10 +24,25 @@ if not sys.warnoptions:
     import warnings
     warnings.simplefilter("error")
 
+numpy.warnings.filterwarnings('ignore', category=numpy.VisibleDeprecationWarning)
 
 loop_count = 0
 config_ = Config()
 scenes = [scen_0, scen_1, scen_2, scen_3, scen_4, scen_5, scen_6, scen_7]
+zmq_context, ctrl_socket, path_socket, sens_socket, posh_socket, state_socket_p = None, None, None, None, None, None
+
+def close_and_quit():
+    global zmq_context, ctrl_socket, path_socket, sens_socket, posh_socket, state_socket_p
+    print("QUITTING...")
+    try:
+        ctrl_socket.close()
+        path_socket.close()
+        sens_socket.close()
+        posh_socket.close()
+        state_socket_p.close()
+        zmq_context.term()
+    except:
+        pass
 
 
 def load_env() -> Scenario:
@@ -48,7 +66,8 @@ def start_env() -> Scenario:
 
 
 def main(logger):
-    global loop_count, config_
+    global loop_count, config_, \
+        zmq_context, ctrl_socket, path_socket, sens_socket, posh_socket, state_socket_p
 
     zmq_context = zmq.Context.instance()
 
@@ -222,4 +241,8 @@ if __name__ == "__main__":
 
     logging.setLogRecordFactory(record_factory)
 
-    main(logging.getLogger("sbRobot"))
+    try:
+        main(logging.getLogger("sbRobot"))
+    finally:
+        # clean up
+        close_and_quit()

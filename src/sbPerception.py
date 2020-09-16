@@ -7,6 +7,9 @@ import dill as pickle
 import numpy as np
 import pyximport
 import zmq
+import signal
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow ctrl + c quitting
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -16,6 +19,8 @@ from src.utils.modes import ExMode
 if not sys.warnoptions:
     import warnings
     warnings.simplefilter("error")
+
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 pyximport.install(language_level=3, setup_args={"include_dirs": np.get_include()})
 
@@ -42,6 +47,20 @@ def filter_nan(arr: np.ndarray):
 config_ = Config()
 obst_counter = 0
 loop_count = 0
+zmq_context, ctrl_socket, obst_socket, sens_socket, state_socket = None, None, None, None, None
+
+
+def close_and_quit():
+    global zmq_context, ctrl_socket, obst_socket, sens_socket, state_socket
+    print("QUITTING...")
+    try:
+        ctrl_socket.close()
+        sens_socket.close()
+        obst_socket.close()
+        state_socket.close()
+        zmq_context.term()
+    except:
+        pass
 
 
 def scan_to_obst_segments(logger, depth_data, proj_mat, view_mat, past_obst_segments: [ObstacleSegment], was_pasued) \
@@ -157,6 +176,7 @@ def scan_to_obst_segments(logger, depth_data, proj_mat, view_mat, past_obst_segm
     pc_slice[:, background_idx] = np.NaN
     split_x = np.split(pc_slice[0], edge_idx)
     split_y = np.split(pc_slice[1], edge_idx)
+
     split = np.vstack((split_x, split_y))
     # filter nan and empty
     split = filter_nan(split)
@@ -187,7 +207,9 @@ def scan_to_obst_segments(logger, depth_data, proj_mat, view_mat, past_obst_segm
 
 
 def main(logger):
-    global loop_count, config_, obst_counter
+    global loop_count, config_, obst_counter, \
+        zmq_context, ctrl_socket, obst_socket, sens_socket, state_socket
+
     zmq_context = zmq.Context.instance()
 
     # setup zmq control channel
@@ -255,7 +277,8 @@ def main(logger):
         # poll control
         if ctrl_socket in socks and socks[ctrl_socket] == zmq.POLLIN:
             a_msg = ctrl_socket.recv()
-            if a_msg is None: continue
+            if a_msg is None:
+                continue
             (m_msg, config_) = pickle.loads(a_msg[len(default_config['PUB_PREFIX']):])
             if m_msg == "SHUTDOWN":
                 ex_mode = ExMode.STOP
@@ -332,4 +355,8 @@ if __name__ == "__main__":
 
     logging.setLogRecordFactory(record_factory)
 
-    main(logging.getLogger("sbPerception"))
+    try:
+        main(logging.getLogger("sbPerception"))
+    finally:
+        # clean up
+        close_and_quit()

@@ -22,6 +22,8 @@ All work presented in this repository is available under the MIT licence.
 To run the simulation environment, first make sure all the required python packages are installed:
 
 ``` bash
+> pip install Cython numpy
+> pip install git+git://github.com/the-jojo/pydubins.git
 > python setup.py install
 ```
 

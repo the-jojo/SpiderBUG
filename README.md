@@ -5,6 +5,8 @@ _Mobile Robot Navigation using Dynamic Webs_
 
 The problem addressed is that of an autonomous robotic agent navigating an unknown and dynamically changing 2-D environment without the use of a global map. The particular focus is the scenario of a winewaiter robot desiring smooth but short paths. An adaptive obstacle navigation algorithm (SpiderBUG) is presented overcoming perceptual limitations of sensors and real-time requirements. The Tangent-BUG algorithm is adapted to compensate for obstacles moving with unknown velocities. Also, dynamic webs are used and introduced in a way to span through space-time, reducing the problem in free-space to graph traversal. Smoothness in our new algorithm is guaranteed both through the nature of the incorporated Tangent-BUG algorithm as well as through the use of shift-curves. The simulation results are shown to support the theoretical design's intentions. Guarantees persist in the face of cluttered, static and dynamic environments.
 
+*[J. Weck, “Mobile robot navigation using dynamic webs.” 2019.]*
+
 ## This Project
 
 **This project code accompanies a dissertation presented in part fulfilment of the requirements of the Master of Science Computing Science of the University of Glasgow**
@@ -16,6 +18,10 @@ This following document explains how to run the code to reproduce results from t
 ## Licence
 
 All work presented in this repository is available under the MIT licence.
+
+## Requirements
+
+The code was only tested on a Windows 10 machine. Problems may arise on other operating systems. A dedicated graphics card and higher-spec multicore CPU is recommended, since each module and PyBullet itself runs on a different thread. 
 
 ## Quickstart Guide
 
@@ -100,6 +106,10 @@ File Structure:
 ```
 
 In-depth description of the source code can be found in the documentation of each file. 
+
+## Future Work
+
+More testing is required to ensure compatibility with future versions of numpy and pybullet and with other operating systems and systems specs. The GUI could be improved and modules could be made more resilient to unexpected errors.  
 
 ## SpiderBUG run on all Scenarios
 

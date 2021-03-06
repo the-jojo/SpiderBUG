@@ -59,7 +59,7 @@ class Robot:
         pos = self.pos.as_list_3d()
         pos[2] = 0.5
 
-        self.p_id = p.loadURDF(self.urdf_path, pos)
+        self.p_id = self._config.loadURDF(p, self.urdf_path, pos)
 
         # reenable rendering
         p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)

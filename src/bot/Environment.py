@@ -14,7 +14,7 @@ class Obstacle:
     Obstacle in the pybullet simulation. Cube of 1x1x1 dimension with velocity, acceleration and/or random movement
     """
 
-    def __init__(self, start_pos: Node, start_orn: Node, velocity: Node, urdf_path: str, v_change=None, const_v=False,
+    def __init__(self, start_pos: Node, start_orn: Node, velocity: Node, urdf_path: str, config, v_change=None, const_v=False,
                  rand_acc=False):
         """
         Initialises obstacle
@@ -26,6 +26,7 @@ class Obstacle:
         :param const_v: maintain constant velocity magnitude (speed)
         :param rand_acc: randomly set acceleration
         """
+        self._config = config
         self.start_pos = start_pos
         self.start_orn = start_orn
         self.velocity = velocity
@@ -38,7 +39,7 @@ class Obstacle:
 
     def instantiate(self):
         """Instantiates the obstacle by loading its urdf file"""
-        self.p_id = p.loadURDF(self.urdf_path, self.start_pos.as_list_3d(),
+        self.p_id = self._config.loadURDF(p, self.urdf_path, self.start_pos.as_list_3d(),
                                p.getQuaternionFromEuler(self.start_orn.as_list_3d()))
 
     def update(self):
@@ -102,7 +103,7 @@ class Scenario:
         p.resetSimulation()
         p.setGravity(0, 0, -10.)
 
-        p.loadURDF(self.config_.PLANE_URDF)
+        self.config_.loadURDF(p, self.config_.PLANE_URDF)
         self.bot.render()
         for o in self.env_objects:
             o.instantiate()
@@ -208,7 +209,7 @@ def scen_1(config_):
 
     obj1 = Obstacle(Node.from_list([3.5, 0.5, 0.5]),
                     Node.from_list([0, 0, 0.75]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
 
     return Scenario(start_pos, start_orn, goal_pos, [obj1], config_)
 
@@ -221,19 +222,19 @@ def scen_2(config_):
 
     obj1 = Obstacle(Node.from_list([2.2, 1.90, 0.5]),
                     Node.from_list([0, 0, 0.75]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
     obj2 = Obstacle(Node.from_list([5.8, 0.9, 0.5]),
                     Node.from_list([0, 0, 0]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
     obj3 = Obstacle(Node.from_list([2.3, -0.85, 0.5]),
                     Node.from_list([0, 0, 0.1]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
     obj4 = Obstacle(Node.from_list([6.5, -1.90, 0.5]),
                     Node.from_list([0, 0, 0.75]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
     obj5 = Obstacle(Node.from_list([10., 0.8, 0.5]),
                     Node.from_list([0, 0, 0.]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
 
     return Scenario(start_pos, start_orn, goal_pos, [obj1, obj2, obj3, obj4], config_)
 
@@ -246,25 +247,25 @@ def scen_3(config_):
 
     obj0 = Obstacle(Node.from_list([2.3, 2.7, 0.5]),
                     Node.from_list([0, 0, 00]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
     obj1 = Obstacle(Node.from_list([3.5, 2.20, 0.5]),
                     Node.from_list([0, 0, 0.75]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
     obj2 = Obstacle(Node.from_list([4, 1, 0.5]),
                     Node.from_list([0, 0, 0]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
     obj3 = Obstacle(Node.from_list([4.1, 0, 0.5]),
                     Node.from_list([0, 0, 0]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
     obj4 = Obstacle(Node.from_list([4, -1, 0.5]),
                     Node.from_list([0, 0, 0]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
     obj5 = Obstacle(Node.from_list([3.5, -2.20, 0.5]),
                     Node.from_list([0, 0, 0.75]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
     obj6 = Obstacle(Node.from_list([2.3, -2.7, 0.5]),
                     Node.from_list([0, 0, 00]),
-                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF)
+                    Node.from_list([0, 0, 0]), config_.BLOCK_URDF, config_)
 
     return Scenario(start_pos, start_orn, goal_pos, [obj0, obj1, obj2, obj3, obj4, obj5, obj6], config_)
 
@@ -277,7 +278,7 @@ def scen_4(config_):
 
     obj1 = Obstacle(Node.from_list([7, 0.2, 0.5]),
                     Node.from_list([0, 0, 0.7]),
-                    Node.from_list([-0.1, 0, 0.0]), config_.BLOCK_DYN_URDF)
+                    Node.from_list([-0.1, 0, 0.0]), config_.BLOCK_DYN_URDF, config_)
 
     return Scenario(start_pos, start_orn, goal_pos, [obj1], config_)
 
@@ -290,13 +291,13 @@ def scen_5(config_):
 
     obj1 = Obstacle(Node.from_list([3, -1.5, 0.5]),
                     Node.from_list([0, 0, 0.]),
-                    Node.from_list([0, 0.09, 0.0]), config_.BLOCK_DYN_URDF)
+                    Node.from_list([0, 0.09, 0.0]), config_.BLOCK_DYN_URDF, config_)
     obj2 = Obstacle(Node.from_list([3, -4.5, 0.5]),
                     Node.from_list([0, 0, 0.]),
-                    Node.from_list([0, 0.09, 0.0]), config_.BLOCK_DYN_URDF)
+                    Node.from_list([0, 0.09, 0.0]), config_.BLOCK_DYN_URDF, config_)
     obj3 = Obstacle(Node.from_list([6, 4, 0.5]),
                     Node.from_list([0, 0, 0.25]),
-                    Node.from_list([0, -0.09, 0.0]), config_.BLOCK_DYN_URDF)
+                    Node.from_list([0, -0.09, 0.0]), config_.BLOCK_DYN_URDF, config_)
 
     return Scenario(start_pos, start_orn, goal_pos, [obj1, obj2, obj3], config_)
 
@@ -309,16 +310,16 @@ def scen_6(config_):
 
     obj1 = Obstacle(Node.from_list([6.5, 1, 0.5]),
                     Node.from_list([0, 0, 0.]),
-                    Node.from_list([-0.1, -0.05, 0.0]).as_unit_vector()*0.1, config_.BLOCK_DYN_URDF)
+                    Node.from_list([-0.1, -0.05, 0.0]).as_unit_vector()*0.1, config_.BLOCK_DYN_URDF, config_)
     obj2 = Obstacle(Node.from_list([9.5, -0.5, 0.5]),
                     Node.from_list([0, 0, 0.]),
-                    Node.from_list([-0.05, 0., 0.0]), config_.BLOCK_DYN_URDF)
+                    Node.from_list([-0.05, 0., 0.0]), config_.BLOCK_DYN_URDF, config_)
     obj3 = Obstacle(Node.from_list([1.5, 1.5, 0.5]),
                     Node.from_list([0, 0, 0.]),
-                    Node.from_list([0., 0.05, 0.0]), config_.BLOCK_DYN_URDF)
+                    Node.from_list([0., 0.05, 0.0]), config_.BLOCK_DYN_URDF, config_)
     obj4 = Obstacle(Node.from_list([1.5, -1.5, 0.5]),
                     Node.from_list([0, 0, 0.75]),
-                    Node.from_list([0., 0.05, 0.0]), config_.BLOCK_DYN_URDF)
+                    Node.from_list([0., 0.05, 0.0]), config_.BLOCK_DYN_URDF, config_)
 
     return Scenario(start_pos, start_orn, goal_pos, [obj1, obj2, obj3, obj4], config_)
 
@@ -366,6 +367,6 @@ def scen_7(config_):
     obj1 = Obstacle(o_p_start,
                     o_o_start,
                     o_v_start, config_.BLOCK_DYN_URDF,
-                    o_v_change, o_v_const, o_v_rand)
+                    o_v_change, o_v_const, o_v_rand, config_)
 
     return Scenario(start_pos, start_orn, goal_pos, [obj1], config_)

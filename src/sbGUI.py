@@ -14,6 +14,7 @@ import zmq
 from matplotlib import style
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
+from mpl_toolkits.mplot3d import Axes3D
 
 import signal
 
@@ -206,7 +207,10 @@ class GuiApp(tk.Tk):
         self.ctrl_socket = ctrl_socket
         self.logger = logger
 
-        tk.Tk.iconbitmap(self, default="data\\py_data\\spider.ico")
+        try:
+            tk.Tk.iconbitmap(self, default="data\\py_data\\spider.ico")
+        except:
+            tk.Tk.iconbitmap(self, default="..\\data\\py_data\\spider.ico")
         tk.Tk.wm_title(self, "GUI Module")
 
         self.geometry("500x900-0+5")  # Width x Height + x_pos + y_pos

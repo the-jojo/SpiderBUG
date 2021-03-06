@@ -12,7 +12,7 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)  # allow ctrl + c quitting
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-pyximport.install(setup_args={"include_dirs": numpy.get_include()})
+pyximport.install(language_level=3, setup_args={"include_dirs": numpy.get_include()})
 
 from src.utils.config import Config, default_config
 from src.utils.modes import ExMode

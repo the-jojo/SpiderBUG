@@ -242,6 +242,12 @@ class Config(object):
     def ROB_MODEL(self):
         return self.get_property('ROB_MODEL')
 
+    def loadURDF(self, p, file, *args):
+        try:
+            return p.loadURDF(file, *args)
+        except:
+            return p.loadURDF("." + file, *args)
+
     def __getstate__(self):
         return self._config
 

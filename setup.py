@@ -25,7 +25,7 @@ setup(
     name         = "SpiderBUG",
     version      = "1.0.0",
     description  = "Code to test the SpiderBUG path-planner",
-    long_description = read('README.md'),
+    long_description = 'README.md',
     author       = "Johannes Weck",
     author_email = "johannes.weck@gmail.com",
     url          = "http://github.com/the-jojo/SpiderBUG",

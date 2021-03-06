@@ -50,23 +50,24 @@ Then run each of the commands below in a new shell window/tab:
 
 Once `READY` is printed by each module to their console, use the GUI interface to start a scenario. Select "Setup Simulation", then select the robot model and scenario from the dropdown lists. The image below explains the interface options.
 
-![Live View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/setup_page.PNG "Setup Page Explanation")
-
 *Setup interface page explanation*
+
+![Live View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/setup_page.PNG "Setup Page Explanation")
 
 Click "Start" to start the simulation. "Pause" can be used to pause all modules and "Step" to run one iteration of each module, including the PyBullet simulation.
 
 Click "View Robot Live State" to view a graphical representation of the planner's internal state. The image below explains the available elements of this interface page. Please note that elements of the 3D plot of the dynamic web and the obstacle may overlap when they should be underlapping, thus making it hard to interpret. 
 
-![Live View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/live_view.PNG "Live View Page Explanation")
 
 *Live view interface page explanation*
 
+![Live View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/live_view.PNG "Live View Page Explanation")
+
 The robot can be either a Turtebot 2 model or a Spherebot and the PyBullet OpenGL simulation environment is depicted and explained in the image below.
 
-![Simulation View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/pybullet.PNG "Pybullet Simulation Explanation")
-
 *Pybullet Simulation explanation* 
+
+![Simulation View](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/pybullet.PNG "Pybullet Simulation Explanation")
 
 ## Documentation
 
@@ -113,26 +114,27 @@ More testing is required to ensure compatibility with future versions of numpy a
 
 ## SpiderBUG run on all Scenarios
 
-![Scenario 1](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_1.gif "Scenario 1")
-
 *Scenario 1*
 
-![Scenario 2](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_2.gif "Scenario 2")
+![Scenario 1](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_1.gif "Scenario 1")
 
 *Scenario 2*
 
-![Scenario 3](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_3.gif "Scenario 3")
+![Scenario 2](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_2.gif "Scenario 2")
 
 *Scenario 3*
 
-![Scenario 4](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_4.gif "Scenario 4")
+![Scenario 3](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_3.gif "Scenario 3")
 
 *Scenario 4*
 
-![Scenario 5](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_5.gif "Scenario 5")
+![Scenario 4](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_4.gif "Scenario 4")
 
 *Scenario 5*
 
-![Scenario 6](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_6.gif "Scenario 6")
+![Scenario 5](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_5.gif "Scenario 5")
 
 *Scenario 6*
+
+![Scenario 6](https://raw.githubusercontent.com/the-jojo/SpiderBUG/master/md_files/scen_6.gif "Scenario 6")
+

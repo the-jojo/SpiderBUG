@@ -63,6 +63,20 @@ def dist_2d(x1, y1, x2, y2):
     dist = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
     return dist
 
+def linesAreParallel( point_1, point_2, point_3, point_4 ):
+    """ Return True if the given lines point_1-point_2 and
+        point_3-point_4 are parallel """
+    x1,y1 = point_1
+    x2,y2 = point_2
+    x3,y3 = point_3
+    x4,y4 = point_4
+    return (((x1-x2)*(y3-y4)) - ((y1-y2)*(x3-x4)) == 0)
+
+def is_point_btw(a, b, p):
+    ax,ay = a
+    bx,by = b
+    px,py = p
+    return (dist_2d(ax,ay , px,py) + dist_2d(px,py , bx,by)) - dist_2d(ax,ay , bx,by) <= 0
 
 def dist_2d_p(start, end):
     """

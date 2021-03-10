@@ -6,7 +6,8 @@ from pygame.sprite import Sprite
 from src.ui.front_bot import Bot
 from src.ui.front_goal import Goal
 from src.ui.front_obstacle import Obstacle, SQUARE, RECTANGLE
-from src.ui.utils import COLOR
+from src.ui.utils import COLOR, MATH
+from src.utils.modes import ExMode
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 pyximport.install(language_level=3, setup_args={"include_dirs": np.get_include()})
@@ -54,31 +55,46 @@ def main():
     all_sprites = pygame.sprite.Group(*obstacles.sprites(), robot, goal)
 
     # Run until the user asks to quit
-    running = True
+    ex_mode = ExMode.RUNNING
 
-    while running:
+
+    while ex_mode != ExMode.STOP:
         # Did the user click the window close button?
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                ex_mode = ExMode.STOP
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w:
+                    print(pygame.mouse.get_pos())
+                if event.key == pygame.K_SPACE:
+                    if ex_mode == ExMode.PAUSED:
+                        ex_mode = ExMode.RUNNING
+                    elif ex_mode == ExMode.RUNNING:
+                        ex_mode = ExMode.PAUSED
 
-        all_sprites.clear(screen, background)
-        all_sprites.update()
-        if pygame.sprite.spritecollideany(robot, obstacles, pygame.sprite.collide_mask):
-            print("dead")
-            robot.set_dead()
-        if pygame.sprite.collide_mask(robot, goal):
-            print("goal")
-            robot.set_complete()
+        if ex_mode == ex_mode.RUNNING:
+            all_sprites.clear(screen, background)
+            all_sprites.update()
+            if pygame.sprite.spritecollideany(robot, obstacles, pygame.sprite.collide_mask):
+                print("dead")
+                robot.set_dead()
+            if pygame.sprite.collide_mask(robot, goal):
+                print("goal")
+                robot.set_complete()
 
-        for obstacle in obstacles.sprites():
-            obstacle.set_visible_points(robot.rect.center, obstacles.sprites())
+            for obstacle in obstacles.sprites():
+                obstacle.set_visible_points(robot.rect.center, obstacles.sprites())
 
 
-        all_sprites.draw(screen)
-        for obstacle in obstacles.sprites():
-            obstacle.draw()
+            all_sprites.draw(screen)
+            for obstacle in obstacles.sprites():
+                obstacle.draw()
 
+            # draw past path of robot
+            p1 = robot.past_path[0]
+            for p2 in robot.past_path[1:]:
+                pygame.draw.line(background, COLOR.RED, p1, p2, 2)
+                p1 = p2
 
         # Flip the display
         pygame.display.flip()

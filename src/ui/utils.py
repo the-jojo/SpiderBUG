@@ -1,4 +1,6 @@
 import math
+import numpy as np
+from typing import Tuple
 
 
 class COLOR:
@@ -10,6 +12,20 @@ class COLOR:
     GREY = (70,70,70)
 
 class MATH:
+    def sub(a, b):
+        return (np.array(a) - np.array(b)).tolist()
+
+    def add(a, b):
+        return (np.array(a) + np.array(b)).tolist()
+
+    def mult(a, B):
+        return (np.array(a) * B).tolist()
+
+    def to_unit_vector(v: Tuple[float, float]):
+        if v == (0,0):
+            return [0.,0.]
+        return (np.array(v) / np.linalg.norm(np.array(v))).tolist()
+
     def dist_2d(p1, p2):
         """
         calculates euclidian distance between two points

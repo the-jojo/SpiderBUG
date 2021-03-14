@@ -16,3 +16,9 @@ class ExMode(Enum):  # execution mode of runtime module
     PAUSED = 1
     STEP = 2
     STOP = 3
+    QUIT = 4
+
+class RobMode(Enum):
+    RUNNING = 0
+    CRASH = 1
+    GOAL = 2

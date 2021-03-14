@@ -1,16 +1,20 @@
-import pygame, numpy
+from typing import List
+
+import numpy
+import pygame
 from matplotlib import path
 
 from src.ui.utils import COLOR, MATH
 
 
 class Obstacle(pygame.sprite.Sprite):
-    def __init__(self, size: (int, int), position, corners):
+    def __init__(self, size: (int, int), position: (int, int), corners: List, velocity = (0.,0.)):
         pygame.sprite.Sprite.__init__(self)
         self.size = size
-        self.position = position
+        self.center = position
         self.corners = corners
         self.marked_boundary = []
+        self.velocity = velocity
 
         # create transparent background image
         self.image = pygame.Surface( size, pygame.SRCALPHA, 32 )
@@ -24,18 +28,22 @@ class Obstacle(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface( self.image )
 
         self.sh_polygon = path.Path(self.get_real_corners(), closed=True)
-        print('done')
 
     def get_boundary_points(self):
         N = 50
         return numpy.concatenate((self.sh_polygon.interpolated(N).vertices,
-            path.Path([self.get_real_corners()[-1], self.get_real_corners()[0]]).interpolated(N).vertices))
+                path.Path([self.get_real_corners()[-1], self.get_real_corners()[0]]).interpolated(N).vertices))
 
     def get_real_corners(self):
         real_corners = []
         for cx, cy in self.corners:
             real_corners.append((cx + self.rect.topleft[0], cy + self.rect.topleft[1]))
         return real_corners
+
+    def update(self):
+        self.center = MATH.add(self.center, self.velocity)
+        self.rect.center = self.center
+        #self.draw()
 
     def draw(self):
         self.image = 0
@@ -83,11 +91,11 @@ class Obstacle(pygame.sprite.Sprite):
             if point_is_clear:
                 self.mark_point(bound_point[0], bound_point[1])
 
-def SQUARE(size: int, position: (int, int)):
-    return Obstacle((size, size), position, [(0,0), (size,0), (size,size), (0,size)])
+def SQUARE(size: int, position: (int, int), velocity: (int, int) = (0,0)):
+    return Obstacle((size, size), position, [(0,0), (size,0), (size,size), (0,size)], velocity)
 
-def TRIANGLE(size: int, position: (int, int)):
-    return Obstacle((size, size), position, [(0,0), (size,0), (size,size)])
+def TRIANGLE(size: int, position: (int, int), velocity: (int, int) = (0,0)):
+    return Obstacle((size, size), position, [(0,0), (size,0), (size,size)], velocity)
 
-def RECTANGLE(width: int, length: int, position: (int, int)):
-    return Obstacle((width, length), position, [(0,0), (width,0), (width,length), (0,length)])
+def RECTANGLE(width: int, length: int, position: (int, int), velocity: (int, int) = (0,0)):
+    return Obstacle((width, length), position, [(0,0), (width,0), (width,length), (0,length)], velocity)

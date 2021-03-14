@@ -1,12 +1,12 @@
-import pygame, sys, os, math
-import pyximport
 import numpy as np
-from pygame.sprite import Sprite
+import os
+import pygame
+import pyximport
+import sys
+import time
 
-from src.ui.front_bot import Bot
-from src.ui.front_goal import Goal
-from src.ui.front_obstacle import Obstacle, SQUARE, RECTANGLE
-from src.ui.utils import COLOR, MATH
+from src.ui.front_setup import Setup
+from src.ui.utils import COLOR, IO
 from src.utils.modes import ExMode
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -14,92 +14,109 @@ pyximport.install(language_level=3, setup_args={"include_dirs": np.get_include()
 
 pygame.init()
 
-# Set up the drawing window
-screen = pygame.display.set_mode([500, 500])
-
-def dist(x1,y1, x2,y2):
-    return math.sqrt((x2 - x1) ** 2. + (y2 - y1) ** 2.)
-
-
-def collided(sprite: Sprite, other: Sprite):
-    # Now calculate the offset between the rects.
-    offset_x = other.rect.x - sprite.rect.x
-    offset_y = other.rect.y - sprite.rect.y
-    return sprite.mask.overlap(other.mask, (offset_x, offset_y))
-
-
-
-def intersectionPoint( x1,y1, x2,y2, x3,y3, x4,y4 ):
-    """ Return the point where the lines through (x1,y1)-(x2,y2)
-        and (x3,y3)-(x4,y4) cross.  This may not be on-screen  """
-    #Use determinant method, as per
-    #Ref: https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-    Px = ((((x1*y2)-(y1*x2))*(x3 - x4)) - ((x1-x2)*((x3*y4)-(y3*x4)))) / (((x1-x2)*(y3-y4)) - ((y1-y2)*(x3-x4)))
-    Py = ((((x1*y2)-(y1*x2))*(y3 - y4)) - ((y1-y2)*((x3*y4)-(y3*x4)))) / (((x1-x2)*(y3-y4)) - ((y1-y2)*(x3-x4)))
-    return Px,Py
 
 def main():
-    background = pygame.Surface(screen.get_size())
-    background.fill(COLOR.WHITE)
-    screen.blit(background, (0,0))
+    # Set up the drawing window
+    screen = pygame.display.set_mode(Setup.DISPLAY_SIZE)
 
-    robot = Bot(None, (25, 250))
-    goal = Goal((450, 150))
-    obstacle1 = SQUARE(50, (100,100))
-    obstacle2 = RECTANGLE(50, 100, (200,100))
-    obstacle3 = RECTANGLE(50, 150, (300,100))
+    iter_n = 1
+    path_n = 0
+    path_t = 4
 
-
-
-    obstacles = pygame.sprite.Group(obstacle1, obstacle2, obstacle3)
-    all_sprites = pygame.sprite.Group(*obstacles.sprites(), robot, goal)
+    print("Starting simulation...")
+    print("Controls: [space] to pause/resume")
+    print("          [w]     to print the mouse (x,y) position")
+    print("          [q]     to quit the simulation")
+    print("          [s]     to skip the iteration")
 
     # Run until the user asks to quit
     ex_mode = ExMode.RUNNING
 
+    while path_n < path_t and ex_mode != ExMode.QUIT:
+        print("Iteration " + str(path_n))
 
-    while ex_mode != ExMode.STOP:
-        # Did the user click the window close button?
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                ex_mode = ExMode.STOP
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_w:
-                    print(pygame.mouse.get_pos())
-                if event.key == pygame.K_SPACE:
-                    if ex_mode == ExMode.PAUSED:
-                        ex_mode = ExMode.RUNNING
-                    elif ex_mode == ExMode.RUNNING:
-                        ex_mode = ExMode.PAUSED
+        # Set up the background
+        background = pygame.Surface(screen.get_size())
+        background.fill(COLOR.WHITE)
+        screen.blit(background, (0,0))
 
-        if ex_mode == ex_mode.RUNNING:
-            all_sprites.clear(screen, background)
-            all_sprites.update()
-            if pygame.sprite.spritecollideany(robot, obstacles, pygame.sprite.collide_mask):
-                print("dead")
-                robot.set_dead()
-            if pygame.sprite.collide_mask(robot, goal):
-                print("goal")
-                robot.set_complete()
+        # get the robot, goal and obstacles
+        robot, goal, obstacles = Setup.load_a_star(Setup.course_3)
 
-            for obstacle in obstacles.sprites():
-                obstacle.set_visible_points(robot.rect.center, obstacles.sprites())
+        all_sprites = pygame.sprite.Group(*obstacles.sprites(), robot, goal)
 
+        IO.write_headers_to_csv_if_needed(Setup.BASE_DIR, robot.__class__.__name__, iter_n, Setup.CSV_HEADERS)
 
-            all_sprites.draw(screen)
-            for obstacle in obstacles.sprites():
-                obstacle.draw()
+        ex_mode = ExMode.RUNNING
 
-            # draw past path of robot
-            p1 = robot.past_path[0]
-            for p2 in robot.past_path[1:]:
-                pygame.draw.line(background, COLOR.RED, p1, p2, 2)
-                p1 = p2
+        time_0 = time.perf_counter()
+        while ex_mode != ExMode.STOP and ex_mode != ExMode.QUIT:
+            # Handle Events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    ex_mode = ExMode.QUIT
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_w:
+                        print(pygame.mouse.get_pos())
+                    if event.key == pygame.K_q:
+                        ex_mode = ExMode.QUIT
+                    if event.key == pygame.K_s:
+                        ex_mode = ExMode.STOP
+                    if event.key == pygame.K_SPACE:
+                        if ex_mode == ExMode.PAUSED:
+                            ex_mode = ExMode.RUNNING
+                        elif ex_mode == ExMode.RUNNING:
+                            ex_mode = ExMode.PAUSED
 
-        # Flip the display
-        pygame.display.flip()
+            if ex_mode == ex_mode.RUNNING:
+                all_sprites.clear(screen, background)
+
+                all_visible_points = []
+                for obstacle in obstacles.sprites():
+                    obstacle.set_visible_points(robot.rect.center, obstacles.sprites())
+                    all_visible_points = all_visible_points + obstacle.marked_boundary
+
+                robot.update(goal.rect.center, all_visible_points)
+
+                if pygame.sprite.spritecollideany(robot, obstacles, pygame.sprite.collide_mask):
+                    print("Robot crashed")
+                    robot.set_dead()
+                    ex_mode = ExMode.STOP
+
+                if pygame.sprite.collide_mask(robot, goal):
+                    print("Robot reached goal")
+                    robot.set_complete()
+                    ex_mode = ExMode.STOP
+
+                all_sprites.draw(screen)
+
+                for obstacle in obstacles.sprites():
+                    obstacle.update()
+                    obstacle.draw()
+
+                # draw past path of robot
+                p1 = robot.past_path[0]
+                for p2 in robot.past_path[1:]:
+                    pygame.draw.line(background, COLOR.RED, p1, p2, 2)
+                    p1 = p2
+
+            # Flip the display
+            pygame.display.flip()
+
+        # done iteration. Robot either crashed or reached the goal
+        time_1 = time.perf_counter()
+
+        # write path to file
+        IO.write_path(Setup.BASE_DIR, robot.__class__.__name__, iter_n, path_n, robot.past_path)
+
+        # write csv to file
+        IO.write_info(Setup.BASE_DIR, robot.__class__.__name__, iter_n, path_n, time_1 - time_0, robot.get_state())
+
+        # increment path identifier
+        path_n += 1
 
     # Done! Time to quit.
+    print("Goodbye...")
     pygame.quit()
 
 if __name__ == "__main__":
